@@ -20,7 +20,9 @@ export default function AppLayout({ user, onLogout }) {
   return (
     <div className="site-wrapper">
       <nav className="dashboard-nav">
-        <img src={logo} alt="Hard Work Mobile Logo" className="nav-logo" />
+        <a href="/">
+         <img src={logo} alt="Hard Work Mobile Logo" className="nav-logo" />
+        </a>
         <button className="mobile-nav-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           &#9776;
         </button>

@@ -118,7 +118,7 @@ button:active {
 
 img.nav-logo {
   height: auto;
-  max-width: 150px;
+  max-width: 120px;
 }
 
 .dashboard-nav button {
@@ -2645,7 +2645,7 @@ html.admin-page-active {
 /* Modern Variables */
 :root {
   --gradient-primary: linear-gradient(135deg, #D4AF37 0%, #D4AF37 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-secondary: linear-gradient(135deg, #DC143C 0%, #DC143C 100%);
   --gradient-accent: linear-gradient(135deg, #D4AF37 0%, #D4AF37 100%);
   --shadow-modern: 0 10px 40px rgba(0,0,0,0.1);
   --shadow-hover: 0 20px 60px rgba(0,0,0,0.15);
