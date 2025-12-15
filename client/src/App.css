@@ -117,8 +117,8 @@ button:active {
 }
 
 img.nav-logo {
-  height: auto;
-  max-width: 120px;
+  max-height: 125px;
+  width: auto;
 }
 
 .dashboard-nav button {
