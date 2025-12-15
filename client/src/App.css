@@ -262,9 +262,7 @@ img.nav-logo {
 }
 
 .app-main {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100vw;
 }
 
 /* Admin page override - strict width control */
