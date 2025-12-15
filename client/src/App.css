@@ -97,7 +97,7 @@ button:active {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 30px !important;
+  padding: 0px 30px !important;
   background-color: var(--surface-color);
   box-shadow: var(--box-shadow);
   border-radius: 0;
@@ -119,6 +119,7 @@ button:active {
 img.nav-logo {
   max-height: 125px;
   width: auto;
+  height: 23vw;
 }
 
 .dashboard-nav button {
