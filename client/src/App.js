@@ -25,6 +25,7 @@ import BookingPage from './pages/BookingPage';
 import BookingFormPage from './pages/BookingFormPage';
 import WorkOrderAcknowledgmentPage from './pages/WorkOrderAcknowledgmentPage';
 import CustomBookingVerificationPage from './pages/CustomBookingVerificationPage';
+import ServiceLandingPage from './pages/ServiceLandingPage';
 
 import './App.css';
 
@@ -118,6 +119,9 @@ function App() {
           <Route path="/verify-custom-booking/:token" element={<CustomBookingVerificationPage />} />
           <Route path="/book/:serviceId" element={<BookingPage user={user} />} />
           <Route path="/book/:serviceId/details" element={<BookingFormPage user={user} />} />
+
+          {/* Service Landing Pages (for Google Ads) */}
+          <Route path="/services/:serviceSlug" element={<ServiceLandingPage />} />
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<ProtectedRoute user={user}><DashboardPage user={user} /></ProtectedRoute>} />
