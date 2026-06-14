@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import './ServiceLandingPage.css';
+import servicesBg from './images/services-hero.jpg';
 
 // ── Page data ──────────────────────────────────────────────────────────────────
 const SERVICE_DATA = {
@@ -267,7 +268,7 @@ export default function ServiceLandingPage() {
   return (
     <div>
       {/* ── Hero ── */}
-      <section className="slp-hero">
+      <section className="slp-hero" style={{ backgroundImage: `url(${servicesBg})` }}>
         <div className="slp-hero-content">
           <span className="slp-hero-eyebrow">{eyebrow}</span>
           <h1>
