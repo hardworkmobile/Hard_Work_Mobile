@@ -193,6 +193,59 @@
   margin-bottom: 44px;
 }
 
+/* Services overview grid */
+.cp-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.cp-service-card {
+  background: #fff;
+  border-radius: var(--border-radius);
+  padding: 28px 22px;
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid var(--accent-color);
+  text-decoration: none;
+  transition: var(--transition-smooth);
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cp-service-card i {
+  font-size: 1.5rem;
+  color: var(--accent-color);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.cp-service-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--primary-color);
+}
+
+.cp-service-card p {
+  font-size: 0.88rem;
+  color: var(--text-light-color);
+  margin: 0 0 14px;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.cp-service-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-top: auto;
+}
+
 /* Contact info cards */
 .cp-info-grid {
   display: grid;
