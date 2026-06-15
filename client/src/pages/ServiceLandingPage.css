@@ -360,23 +360,27 @@
   transform: translateY(-2px);
 }
 
-/* Contact Form */
+/* Contact Form — matches ContactPage style */
 .slp-form-bg {
-  background-color: var(--primary-color);
+  background-color: var(--background-color);
   padding: 64px 24px;
 }
 
 .slp-form-inner {
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius);
+  padding: 40px;
+  box-shadow: var(--box-shadow);
 }
 
 .slp-form-bg .slp-section-title {
-  color: #fff;
+  color: var(--primary-color);
 }
 
 .slp-form-bg .slp-section-subtitle {
-  color: rgba(255,255,255,0.7);
+  color: var(--text-light-color);
   margin-bottom: 36px;
 }
 
@@ -389,13 +393,13 @@
 .slp-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
+  gap: 15px;
 }
 
 .slp-form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 15px;
 }
 
 .slp-form-group {
@@ -405,62 +409,69 @@
 }
 
 .slp-form-group label {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.85);
-  letter-spacing: 0.02em;
+  color: var(--text-color);
 }
 
 .slp-form-group input,
 .slp-form-group select {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: var(--border-radius);
-  padding: 11px 14px;
-  font-family: var(--font-family);
-  font-size: 0.95rem;
-  color: #fff;
-  transition: var(--transition-smooth);
   width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
   margin-bottom: 0;
 }
 
 .slp-form-group select option {
-  background-color: var(--primary-color);
-  color: #fff;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.slp-form-group select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .slp-form-group input::placeholder {
-  color: rgba(255,255,255,0.35);
+  color: #999;
 }
 
 .slp-form-group input:focus,
 .slp-form-group select:focus {
   outline: none;
   border-color: var(--accent-color);
-  background: rgba(255,255,255,0.12);
   box-shadow: 0 0 0 3px rgba(212,175,55,0.2);
 }
 
 .slp-form-submit {
   background-color: var(--accent-color);
-  color: #000;
-  font-weight: 700;
+  color: #fff;
+  font-weight: 600;
   font-size: 1rem;
-  padding: 14px 30px;
+  padding: 12px 20px;
   border-radius: var(--border-radius);
   border: none;
   cursor: pointer;
-  transition: var(--transition-smooth);
+  font-family: var(--font-family);
+  transition: background-color 0.2s ease, transform 0.1s ease;
   margin-top: 6px;
   width: 100%;
 }
 
 .slp-form-submit:hover {
   background-color: #b8972e;
-  transform: translateY(-2px);
-  color: #000;
+  transform: translateY(-1px);
+}
+
+.slp-form-submit:active {
+  transform: translateY(1px);
 }
 
 .slp-form-submit:disabled {
@@ -470,40 +481,20 @@
 }
 
 .slp-form-success {
-  background: rgba(72, 187, 120, 0.15);
+  background: rgba(72, 187, 120, 0.1);
   border: 1px solid #48bb78;
   border-radius: var(--border-radius);
   padding: 14px 18px;
-  color: #48bb78;
+  color: #276749;
   font-weight: 600;
   text-align: center;
 }
 
 .slp-form-error {
-  background: rgba(245, 101, 101, 0.15);
+  background: rgba(245, 101, 101, 0.1);
   border: 1px solid #f56565;
   border-radius: var(--border-radius);
   padding: 14px 18px;
-  color: #f56565;
+  color: #c53030;
   font-weight: 600;
-  text-align: center;
-}
-
-/* Responsive */
-@media (max-width: 700px) {
-  .slp-form-row {
-    grid-template-columns: 1fr;
-  }
-  .slp-form-row-2 {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .slp-trust-bar {
-    gap: 18px;
-  }
-  .slp-hero {
-    padding: 60px 16px;
-  }
-}
+  t
