@@ -376,7 +376,7 @@ const WorkOrderManager = () => {
                               <div className="expires-info">
                                 Expires: {formatDate(workOrder.acknowledgment.tokenExpiresAt)}
                               </div>
-                            )}
+                            )}</>
                           </span>
                         ) : (
                           <span className="no-acknowledgment">Not required</span>
