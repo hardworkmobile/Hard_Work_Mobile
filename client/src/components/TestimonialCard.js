@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './TestimonialCard.css';
 
 // A simple component to render star ratings (display only)
 const StarRating = ({ rating }) => {

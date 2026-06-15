@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './TestimonialCard.css';
 
 // Star rating display component
 const StarRating = ({ rating }) => {
