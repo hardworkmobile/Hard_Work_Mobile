@@ -67,3 +67,4 @@ function GoogleReviews() {
     </div>
   );
 }
+export default GoogleReviews;

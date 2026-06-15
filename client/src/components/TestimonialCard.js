@@ -56,3 +56,5 @@ function TestimonialCard({ testimonial, user }) {
     </div>
   );
 }
+
+export default TestimonialCard;
