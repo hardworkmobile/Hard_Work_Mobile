@@ -55,3 +55,8 @@ export default function AppLayout({ user, onLogout }) {
       </main>
       <Footer />
  
+    </div>
+  );
+}
+
+export default AppLayout;
