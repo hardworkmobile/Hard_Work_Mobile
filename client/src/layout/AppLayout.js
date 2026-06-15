@@ -33,7 +33,7 @@ export default function AppLayout({ user, onLogout }) {
           <NavLink to="/blog" className="nav-link" onClick={closeMenu}>Blog</NavLink>
           <NavLink to="/about" className="nav-link" onClick={closeMenu}>About Me</NavLink>
           <NavLink to="/contact" className="nav-link" onClick={closeMenu}>Contact</NavLink>
-          <NavLink to="/work-order-portal" className="nav-link work-order-link" onClick={closeMenu}>📄 Work Orders</NavLink>
+          <NavLink to="/work-order-portal" className="nav-link work-order-link" onClick={closeMenu}><i className="fa-solid fa-file-lines"></i> Work Orders</NavLink>
 
           {user ? (
             <>
@@ -54,6 +54,4 @@ export default function AppLayout({ user, onLogout }) {
         <Outlet />
       </main>
       <Footer />
-    </div>
-  );
-}
+ 

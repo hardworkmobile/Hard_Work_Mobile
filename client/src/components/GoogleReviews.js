@@ -6,7 +6,7 @@ import './TestimonialCard.css';
 const StarRating = ({ rating }) => {
   const stars = [];
   for (let i = 0; i < 5; i++) {
-    stars.push(<span key={i} className={i < Math.round(rating) ? 'star filled' : 'star'}>★</span>);
+    stars.push(<span key={i} className={i < Math.round(rating) ? 'star filled' : 'star'}><i className={i < Math.round(rating) ? 'fa-solid fa-star' : 'fa-regular fa-star'}></i></span>);
   }
   return <div className="star-rating">{stars}</div>;
 };
@@ -67,5 +67,3 @@ function GoogleReviews() {
     </div>
   );
 }
-
-export default GoogleReviews;

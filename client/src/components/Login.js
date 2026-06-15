@@ -1,20 +1,20 @@
+// client/src/components/Login.js
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
 function Login({ onLoginSuccess }) {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const location = useLocation();
   const from = location.state?.from;
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,12 +28,13 @@ function Login({ onLoginSuccess }) {
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Sign In</h2>
+      <p className="lp-form-subtitle">Welcome back — enter your details below.</p>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="Email address"
           value={formData.email}
           onChange={handleChange}
           required
@@ -48,9 +49,14 @@ function Login({ onLoginSuccess }) {
           required
           autoComplete="current-password"
         />
-        <button type="submit">Login</button>
+        <button type="submit">Sign In</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && (
+        <div className="lp-error">
+          <i className="fa-solid fa-triangle-exclamation"></i>
+          {error}
+        </div>
+      )}
     </div>
   );
 }
