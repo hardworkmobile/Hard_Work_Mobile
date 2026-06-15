@@ -8,7 +8,7 @@ const SERVICES = [
   {
     icon: 'fa-solid fa-microchip',
     title: 'Vehicle Diagnostics',
-    desc: 'Check engine light on? We bring professional OBD-II diagnostic tools to your location and explain exactly what's wrong.',
+    desc: "Check engine light on? We bring professional OBD-II diagnostic tools to your location and explain exactly what's wrong.",
     slug: 'diagnostics',
   },
   {
