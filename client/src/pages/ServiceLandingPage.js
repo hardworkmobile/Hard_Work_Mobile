@@ -400,4 +400,204 @@ const SERVICE_DATA = {
     services: [
       {
         icon: 'fa-solid fa-battery-full',
-        title: 'Battery Re
+        title: 'Battery Replacement',
+        desc: 'Battery tested and replaced with a quality unit, right in your driveway.',
+      },
+      {
+        icon: 'fa-solid fa-bolt-lightning',
+        title: 'Alternator Replacement',
+        desc: 'Battery warning light or frequent dead batteries? Alternator tested and replaced if failing.',
+      },
+      {
+        icon: 'fa-solid fa-power-off',
+        title: 'Starter Replacement',
+        desc: 'Click with no crank? Starter motor tested and replaced so your car starts reliably again.',
+      },
+      {
+        icon: 'fa-solid fa-diagram-project',
+        title: 'Wiring Diagnosis & Repair',
+        desc: 'Short circuits, open circuits, and damaged wiring tracked down and repaired properly.',
+      },
+      {
+        icon: 'fa-solid fa-sliders',
+        title: 'Fuse, Relay & Module Diagnosis',
+        desc: 'Failing relays and blown fuses identified and corrected — no guesswork.',
+      },
+      {
+        icon: 'fa-solid fa-microchip',
+        title: 'Sensor Replacement',
+        desc: 'O2 sensors, MAF sensors, crankshaft position sensors, and more replaced on-site.',
+      },
+    ],
+    cta: { book: '/services', contact: '/contact' },
+  },
+};
+
+// ── Component ─────────────────────────────────────────────────────────────────
+export default function ServiceLandingPage() {
+  const { serviceSlug } = useParams();
+  const data = SERVICE_DATA[serviceSlug];
+
+  // Graceful 404 fallback
+  if (!data) {
+    return (
+      <div style={{ textAlign: 'center', padding: '80px 24px' }}>
+        <h2>Service not found.</h2>
+        <Link to="/services" className="cta-button" style={{ display: 'inline-block', marginTop: 20 }}>
+          Browse All Services
+        </Link>
+      </div>
+    );
+  }
+
+  const { eyebrow, headline, subheadline, services } = data;
+
+  return (
+    <div>
+      {/* ── Hero ── */}
+      <section className="slp-hero" style={{ backgroundImage: `url(${servicesBg})` }}>
+        <div className="slp-hero-content">
+          <span className="slp-hero-eyebrow">{eyebrow}</span>
+          <h1>
+            {headline[0]}
+            <span>{headline[1]}</span>
+          </h1>
+          <p>{subheadline}</p>
+          <div className="slp-hero-ctas">
+            <a href="tel:4845933875" className="slp-btn-primary">
+              <i className="fa-solid fa-phone" style={{ marginRight: 8 }}></i>
+              (484) 593-3875
+            </a>
+            <a href="#slp-request-form" className="slp-btn-outline">
+              Request Service
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Trust bar ── */}
+      <div className="slp-trust-bar">
+        <span className="slp-trust-item">
+          <i className="fa-solid fa-car"></i> We Come to You
+        </span>
+        <span className="slp-trust-item">
+          <i className="fa-solid fa-dollar-sign"></i> $80/hr Labor
+        </span>
+        <span className="slp-trust-item">
+          <i className="fa-solid fa-file-invoice-dollar"></i> Upfront Pricing
+        </span>
+        <span className="slp-trust-item">
+          <i className="fa-solid fa-map-location-dot"></i> Chester, Delaware & Montgomery Co.
+        </span>
+      </div>
+
+      {/* ── What's Included ── */}
+      <div style={{ background: 'var(--background-color)' }}>
+        <div className="slp-section">
+          <h2 className="slp-section-title">What's Included</h2>
+          <p className="slp-section-subtitle">
+            All services performed at your home, workplace, or anywhere your vehicle is parked.
+          </p>
+          <div className="slp-services-grid">
+            {services.map((s, i) => (
+              <div className="slp-service-card" key={i}>
+                <i className={s.icon}></i>
+                <h3>{s.title}</h3>
+                <p>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Why Us ── */}
+      <div className="slp-why-bg">
+        <div className="slp-why-inner">
+          <h2 className="slp-section-title">Why Hard Work Mobile?</h2>
+          <p className="slp-section-subtitle">
+            The same quality you'd expect from a top-tier shop — delivered to your driveway.
+          </p>
+          <div className="slp-why-grid">
+            <div className="slp-why-card">
+              <i className="fa-solid fa-car"></i>
+              <h3>We Come to You</h3>
+              <p>
+                Skip the tow truck and the waiting room. We come to your home, office, or wherever your
+                vehicle is parked.
+              </p>
+            </div>
+            <div className="slp-why-card">
+              <i className="fa-solid fa-dollar-sign"></i>
+              <h3>$80/hr — Competitive Rate</h3>
+              <p>
+                At $80/hr, our labor rate is significantly lower than most area shops — and there's no
+                shop overhead padding the bill.
+              </p>
+            </div>
+            <div className="slp-why-card">
+              <i className="fa-solid fa-file-invoice-dollar"></i>
+              <h3>Upfront, Honest Pricing</h3>
+              <p>
+                You know exactly what you're paying before any work begins. No surprises, no upselling,
+                no tricks.
+              </p>
+            </div>
+            <div className="slp-why-card">
+              <i className="fa-solid fa-shield-halved"></i>
+              <h3>Quality Guaranteed</h3>
+              <p>
+                All work comes with our satisfaction guarantee. We stand behind every repair we perform,
+                full stop.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Service Area ── */}
+      <div className="slp-area-bg">
+        <div className="slp-area-inner">
+          <h2 className="slp-section-title">Service Area</h2>
+          <p className="slp-section-subtitle">
+            Proudly serving Southeast Pennsylvania.
+          </p>
+          <div className="slp-county-list">
+            <span className="slp-county-badge">Chester County, PA</span>
+            <span className="slp-county-badge">Delaware County, PA</span>
+            <span className="slp-county-badge">Montgomery County, PA</span>
+          </div>
+          <p className="slp-area-note">
+            Not sure if we cover your area? Call us at{' '}
+            <a href="tel:4845933875" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
+              (484) 593-3875
+            </a>{' '}
+            or send a message — we're happy to check.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Contact Form ── */}
+      <div id="slp-request-form">
+        <ServiceContactForm serviceSlug={serviceSlug} />
+      </div>
+
+      {/* ── Bottom CTA ── */}
+      <div className="slp-cta-bg">
+        <h2>Ready to Get Started?</h2>
+        <p>Book online or give us a call — we'll get you squared away.</p>
+        <div className="slp-cta-actions">
+          <Link to="/services" className="slp-btn-dark">
+            Browse Services & Book
+          </Link>
+          <Link to="/contact" className="slp-btn-dark-outline">
+            Send a Message
+          </Link>
+          <a href="tel:4845933875" className="slp-btn-dark-outline">
+            <i className="fa-solid fa-phone" style={{ marginRight: 8 }}></i>
+            (484) 593-3875
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
