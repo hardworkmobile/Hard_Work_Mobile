@@ -59,4 +59,3 @@ export default function AppLayout({ user, onLogout }) {
   );
 }
 
-export default AppLayout;
