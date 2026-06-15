@@ -1,7 +1,134 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import axios from 'axios';
 import './ServiceLandingPage.css';
 import servicesBg from './images/services-hero.jpg';
+
+const SERVICE_LABELS = {
+  diagnostics: 'Vehicle Diagnostics / Check Engine Light',
+  brakes: 'Brake Repair',
+  'engine-repair': 'Engine Repair',
+  maintenance: 'Scheduled Maintenance',
+  suspension: 'Suspension Repair',
+  electrical: 'Electrical Repair',
+};
+
+const URGENCY_OPTIONS = [
+  'As soon as possible',
+  'Within 1 week',
+  'Within 2 weeks',
+  'Within a month',
+  'Flexible / No rush',
+];
+
+function ServiceContactForm({ serviceSlug }) {
+  const [formData, setFormData] = useState({
+    year: '',
+    make: '',
+    model: '',
+    serviceType: SERVICE_LABELS[serviceSlug] || '',
+    urgency: '',
+    name: '',
+    phone: '',
+    email: '',
+  });
+  const [status, setStatus] = useState({ submitted: false, message: '', error: false });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await axios.post('/api/service-request', formData);
+      setStatus({ submitted: true, message: res.data.msg, error: false });
+      setFormData({ year: '', make: '', model: '', serviceType: SERVICE_LABELS[serviceSlug] || '', urgency: '', name: '', phone: '', email: '' });
+    } catch (err) {
+      setStatus({ submitted: true, message: err.response?.data?.msg || 'Something went wrong. Please try again.', error: true });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="slp-form-bg">
+      <div className="slp-form-inner">
+        <h2 className="slp-section-title">Request Service</h2>
+        <p className="slp-section-subtitle">
+          Fill out the form below and we'll get back to you with a quote and next steps.
+        </p>
+        <form className="slp-form" onSubmit={handleSubmit}>
+          {/* Vehicle info row */}
+          <div className="slp-form-row">
+            <div className="slp-form-group">
+              <label htmlFor="slp-year">Year *</label>
+              <input id="slp-year" type="number" name="year" value={formData.year} onChange={handleChange} placeholder="e.g. 2018" min="1980" max={new Date().getFullYear() + 1} required />
+            </div>
+            <div className="slp-form-group">
+              <label htmlFor="slp-make">Make *</label>
+              <input id="slp-make" type="text" name="make" value={formData.make} onChange={handleChange} placeholder="e.g. Honda" required />
+            </div>
+            <div className="slp-form-group">
+              <label htmlFor="slp-model">Model *</label>
+              <input id="slp-model" type="text" name="model" value={formData.model} onChange={handleChange} placeholder="e.g. Civic" required />
+            </div>
+          </div>
+
+          {/* Service type + urgency */}
+          <div className="slp-form-row-2">
+            <div className="slp-form-group">
+              <label htmlFor="slp-serviceType">Service Type *</label>
+              <select id="slp-serviceType" name="serviceType" value={formData.serviceType} onChange={handleChange} required>
+                <option value="" disabled>Select a service</option>
+                {Object.values(SERVICE_LABELS).map((label) => (
+                  <option key={label} value={label}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="slp-form-group">
+              <label htmlFor="slp-urgency">How Soon Do You Need Service? *</label>
+              <select id="slp-urgency" name="urgency" value={formData.urgency} onChange={handleChange} required>
+                <option value="" disabled>Select timeframe</option>
+                {URGENCY_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Contact info */}
+          <div className="slp-form-row">
+            <div className="slp-form-group">
+              <label htmlFor="slp-name">Your Name *</label>
+              <input id="slp-name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full name" required />
+            </div>
+            <div className="slp-form-group">
+              <label htmlFor="slp-phone">Phone Number *</label>
+              <input id="slp-phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="(555) 555-5555" required />
+            </div>
+            <div className="slp-form-group">
+              <label htmlFor="slp-email">Email Address *</label>
+              <input id="slp-email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
+            </div>
+          </div>
+
+          {status.submitted && (
+            <div className={status.error ? 'slp-form-error' : 'slp-form-success'}>
+              {status.message}
+            </div>
+          )}
+
+          <button type="submit" className="slp-form-submit" disabled={submitting}>
+            {submitting ? 'Sending...' : 'Submit Request'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 // ── Page data ──────────────────────────────────────────────────────────────────
 const SERVICE_DATA = {
@@ -277,12 +404,12 @@ export default function ServiceLandingPage() {
           </h1>
           <p>{subheadline}</p>
           <div className="slp-hero-ctas">
-            <Link to={data.cta.book} className="slp-btn-primary">
-              View Services & Book
-            </Link>
-            <a href="tel:4845933875" className="slp-btn-outline">
+            <a href="tel:4845933875" className="slp-btn-primary">
               <i className="fa-solid fa-phone" style={{ marginRight: 8 }}></i>
               (484) 593-3875
+            </a>
+            <a href="#slp-request-form" className="slp-btn-outline">
+              Request Service
             </a>
           </div>
         </div>
@@ -387,6 +514,11 @@ export default function ServiceLandingPage() {
             or send a message — we're happy to check.
           </p>
         </div>
+      </div>
+
+      {/* ── Contact Form ── */}
+      <div id="slp-request-form">
+        <ServiceContactForm serviceSlug={serviceSlug} />
       </div>
 
       {/* ── Bottom CTA ── */}
