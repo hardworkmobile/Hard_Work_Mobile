@@ -16,22 +16,6 @@ const CustomerChecklist = ({ user }) => {
                 completed: user ? true : false,
                 action: user ? { text: "Account Manager", link: "/dashboard" } : { text: "Sign Up", link: "/register" },
                 note: user ? `✅ Account created successfully! Welcome back, ${user.name || 'valued customer'}!` : "Create your account to track service history"
-            },
-            {
-                id: 2,
-                title: "Add Payment Method",
-                description: serviceType === 'quick' 
-                    ? "Required for Professional Automotive Services" 
-                    : "May be required for custom service requests",
-                icon: "💳",
-                completed: user && user.hasCardOnFile,
-                action: user && !user.hasCardOnFile ? { text: "Add Card", link: "/dashboard?tab=account" } : null,
-                note: user && user.hasCardOnFile 
-                    ? "✅ Payment method on file - Ready for service!"
-                    : serviceType === 'quick' 
-                        ? "Secure payment processing • No charge until service complete"
-                        : "Some services may require upfront payment authorization",
-                required: serviceType === 'quick'
             }
         ];
 

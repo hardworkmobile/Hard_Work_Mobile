@@ -2,7 +2,6 @@
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import ChangePasswordForm from '../components/ChangePasswordForm';
-import SquarePaymentForm from '../components/SquarePaymentForm';
 import EditBookingModal from '../components/EditBookingModal';
 import './DashboardPage.css';
 
@@ -10,9 +9,6 @@ const AccountSettings = () => (
   <div className="settings-container">
     <div className="settings-section">
       <ChangePasswordForm />
-    </div>
-    <div className="settings-section">
-      <SquarePaymentForm />
     </div>
   </div>
 );

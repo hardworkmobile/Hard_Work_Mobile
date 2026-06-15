@@ -103,19 +103,6 @@ const handleProceedToBooking = () => {
     );
   }
 
-  if (!user.hasCardOnFile) {
-    return (
-        <div className="booking-container">
-            <div className="notice-card">
-                <h2>Payment Method Required</h2>
-                <p>To ensure a seamless booking process, we require a card on file before you can schedule a service.</p>
-                <p>Your card will not be charged until the service is complete.</p>
-                <Link to="/account-settings" className="btn-primary">Go to Account Settings</Link>
-            </div>
-        </div>
-    );
-  }
-
   return (
     <div className="booking-container">
       <h2>Book: {service.name}</h2>
