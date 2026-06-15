@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate, Link, Outlet } from 'react-router-dom';
 import Footer from './Footer';
 import logo from './/images/the_signet_ring.png';
+import ScrollToTop from '../components/ScrollToTop';
 
 export default function AppLayout({ user, onLogout }) {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function AppLayout({ user, onLogout }) {
         </div>
       </nav>
       <main className="app-main">
-        {/* All page components will be rendered here */}
+        <ScrollToTop />
         <Outlet />
       </main>
       <Footer />
