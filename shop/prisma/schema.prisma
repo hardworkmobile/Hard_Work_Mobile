@@ -171,7 +171,7 @@ enum InvoiceStatus {
 model Payment {
   id              String        @id @default(cuid())
   invoiceId       String
-  squarePaymentId String?
+  squarePaymentId String?       @unique
   amount          Float         // in dollars
   method          PaymentMethod
   status          PaymentStatus @default(COMPLETED)
