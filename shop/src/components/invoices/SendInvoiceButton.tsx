@@ -26,7 +26,8 @@ export function SendInvoiceButton({ invoiceId, alreadySent, paymentUrl }: Props)
     setLoading(false);
 
     if (!res.ok) {
-      alert(data.error ?? "Failed to send invoice.");
+      const detail = data.detail ? `\n\n${JSON.stringify(data.detail, null, 2)}` : "";
+      alert((data.error ?? "Failed to send invoice.") + detail);
       return;
     }
 

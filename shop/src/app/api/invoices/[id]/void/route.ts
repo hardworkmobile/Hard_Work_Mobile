@@ -11,16 +11,12 @@ export async function POST(_req: NextRequest, { params }: Params) {
   if (!invoice) return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   if (invoice.status === "PAID") return NextResponse.json({ error: "Cannot void a paid invoice" }, { status: 422 });
 
-  // Cancel in Square if it was sent
+  // Delete the Square payment link if one was created
   if (invoice.squareInvoiceId) {
     try {
-      const getResponse = await squareClient.invoices.get({ invoiceId: invoice.squareInvoiceId });
-      await squareClient.invoices.cancel({
-        invoiceId: invoice.squareInvoiceId,
-        version: getResponse.invoice!.version!,
-      });
+      await squareClient.checkout.paymentLinks.delete({ id: invoice.squareInvoiceId });
     } catch {
-      // Log but don't block — Square cancellation is best-effort
+      // Best-effort — link may have already expired or been used
     }
   }
 
