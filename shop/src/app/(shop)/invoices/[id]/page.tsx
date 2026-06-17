@@ -75,16 +75,25 @@ export default async function InvoiceDetailPage({ params }: Params) {
           </p>
         </div>
 
-        {canAct && (
-          <div className="flex flex-wrap items-center gap-2">
-            <SendInvoiceButton
-              invoiceId={id}
-              alreadySent={!!invoice.squareInvoiceId}
-              paymentUrl={invoice.squareInvoiceUrl}
-            />
-            <VoidInvoiceButton invoiceId={id} />
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {canAct && (
+            <>
+              <SendInvoiceButton
+                invoiceId={id}
+                alreadySent={!!invoice.squareInvoiceId}
+                paymentUrl={invoice.squareInvoiceUrl}
+              />
+              <VoidInvoiceButton invoiceId={id} />
+            </>
+          )}
+          <Link
+            href={`/invoices/${id}/print`}
+            target="_blank"
+            className="flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Print / PDF
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
