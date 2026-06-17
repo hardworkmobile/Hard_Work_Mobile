@@ -77,6 +77,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       data: {
         squareInvoiceId: paymentLink.id,
         squareInvoiceUrl: paymentUrl,
+        squareOrderId: paymentLink.orderId ?? null,
         status: "SENT",
         sentAt: new Date(),
       },

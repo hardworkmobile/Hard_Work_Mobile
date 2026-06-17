@@ -135,8 +135,9 @@ model Invoice {
   number          String        @unique // e.g. INV-202506-0001
   workOrderId     String        @unique
   customerId      String
-  squareInvoiceId String?       // Square invoice ID after sending
-  squareInvoiceUrl String?      // Public payment link from Square
+  squareInvoiceId  String?       // Square payment link ID after sending
+  squareInvoiceUrl String?      // Public payment link URL from Square
+  squareOrderId    String?       // Square order ID tied to the payment link
   status          InvoiceStatus @default(DRAFT)
   subtotal        Float
   taxRate         Float         @default(0.08)

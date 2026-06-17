@@ -37,12 +37,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  // payment_link_id links back to the payment link we created
+  // Match invoice via order_id (always present) or payment_link_id (sometimes present)
+  const orderId: string | undefined = payment.order_id;
   const paymentLinkId: string | undefined = payment.payment_link_id;
-  if (!paymentLinkId) return NextResponse.json({ ok: true });
+
+  if (!orderId && !paymentLinkId) return NextResponse.json({ ok: true });
 
   const invoice = await prisma.invoice.findFirst({
-    where: { squareInvoiceId: paymentLinkId },
+    where: orderId
+      ? { squareOrderId: orderId }
+      : { squareInvoiceId: paymentLinkId },
   });
 
   if (!invoice || invoice.status === "VOID" || invoice.status === "PAID") {
