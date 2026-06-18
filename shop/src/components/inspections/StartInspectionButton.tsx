@@ -20,11 +20,15 @@ export function StartInspectionButton({ workOrderId, existingInspectionId }: Pro
     }
 
     setLoading(true);
-    const res  = await fetch(`/api/work-orders/${workOrderId}/inspection`, { method: "POST" });
-    const data = await res.json();
-    setLoading(false);
-
-    if (res.ok) router.push(`/inspections/${data.id}`);
+    try {
+      const res  = await fetch(`/api/work-orders/${workOrderId}/inspection`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        router.push(`/inspections/${data.id}`);
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

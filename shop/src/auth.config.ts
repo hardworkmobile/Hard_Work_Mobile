@@ -2,6 +2,11 @@ import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
   pages: { signIn: "/login" },
+  // Force consistent cookie names regardless of protocol.
+  // Without this, the Edge middleware sees HTTPS (ngrok URL) and looks for
+  // __Secure-authjs.session-token, while the Node.js API handler sees HTTP
+  // (localhost:3000) and sets authjs.session-token — causing a mismatch on mobile.
+  useSecureCookies: false,
   callbacks: {
     authorized({ auth, request }) {
       const isLoggedIn  = !!auth?.user;

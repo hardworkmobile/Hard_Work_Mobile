@@ -63,31 +63,40 @@ export function InspectionBoard({
     if (!file || !itemId) return;
 
     setUploading(itemId);
+    try {
+      // 1. Upload file through Next.js — server uploads to R2, no browser↔R2 CORS needed
+      const form = new FormData();
+      form.append("file", file);
 
-    // 1. Get presigned upload URL
-    const urlRes = await fetch(`/api/inspections/${inspectionId}/items/${itemId}/upload-url`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contentType: file.type }),
-    });
-    const { uploadUrl, key, publicUrl } = await urlRes.json();
+      const uploadRes = await fetch(`/api/inspections/${inspectionId}/items/${itemId}/upload-url`, {
+        method: "POST",
+        body: form,
+      });
+      if (!uploadRes.ok) {
+        const body = await uploadRes.json().catch(() => ({}));
+        throw new Error(`Upload ${uploadRes.status}: ${body.error ?? "unknown"}`);
+      }
+      const { url, storageKey } = await uploadRes.json();
 
-    // 2. Upload directly to R2
-    await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      // 2. Save the photo record
+      const photoRes = await fetch(`/api/inspections/${inspectionId}/items/${itemId}/photos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, storageKey }),
+      });
+      if (!photoRes.ok) throw new Error(`Photo save ${photoRes.status}`);
+      const photo = await photoRes.json();
 
-    // 3. Save the photo record
-    const photoRes = await fetch(`/api/inspections/${inspectionId}/items/${itemId}/photos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: publicUrl, storageKey: key }),
-    });
-    const photo = await photoRes.json();
-
-    setItems((prev) =>
-      prev.map((i) => i.id === itemId ? { ...i, photos: [...i.photos, photo] } : i)
-    );
-    setUploading(null);
-    e.target.value = "";
+      setItems((prev) =>
+        prev.map((i) => i.id === itemId ? { ...i, photos: [...i.photos, photo] } : i)
+      );
+      e.target.value = "";
+    } catch (err) {
+      alert(`Photo upload failed: ${err instanceof Error ? err.message : err}`);
+      e.target.value = "";
+    } finally {
+      setUploading(null);
+    }
   }
 
   async function deletePhoto(itemId: string, photoId: string) {
