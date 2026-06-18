@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { SendInvoiceButton } from "@/components/invoices/SendInvoiceButton";
 import { RecordPaymentForm } from "@/components/invoices/RecordPaymentForm";
 import { VoidInvoiceButton } from "@/components/invoices/VoidInvoiceButton";
+import { TerminalButton } from "@/components/invoices/TerminalButton";
 import { formatPhone } from "@/lib/utils";
 import { InvoiceStatus, LineItemType } from "@/generated/prisma";
 
@@ -78,6 +79,7 @@ export default async function InvoiceDetailPage({ params }: Params) {
         <div className="flex flex-wrap items-center gap-2">
           {canAct && (
             <>
+              <TerminalButton invoiceId={id} />
               <SendInvoiceButton
                 invoiceId={id}
                 alreadySent={!!invoice.squareInvoiceId}

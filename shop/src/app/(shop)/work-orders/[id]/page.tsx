@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Phone, Car, MapPin, Clock, Pencil, User } from "lucide-react";
+import { ChevronLeft, Phone, Car, MapPin, Clock, Pencil, User, ClipboardCheck } from "lucide-react";
 import { StatusBadge } from "@/components/work-orders/StatusBadge";
 import { StatusChanger } from "@/components/work-orders/StatusChanger";
 import { LineItemsEditor } from "@/components/work-orders/LineItemsEditor";
 import { WorkOrderNotes } from "./WorkOrderNotes";
+import { StartInspectionButton } from "@/components/inspections/StartInspectionButton";
 import { formatPhone } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -22,6 +23,7 @@ export default async function WorkOrderDetailPage({ params }: Params) {
       vehicle: true,
       lineItems: { orderBy: [{ type: "asc" }, { createdAt: "asc" }] },
       invoice: { select: { id: true, status: true, total: true } },
+      inspection: { select: { id: true } },
     },
   });
 
@@ -59,6 +61,10 @@ export default async function WorkOrderDetailPage({ params }: Params) {
             </Link>
           )}
           <StatusChanger workOrderId={id} currentStatus={wo.status} />
+          <StartInspectionButton
+            workOrderId={id}
+            existingInspectionId={wo.inspection?.id ?? null}
+          />
         </div>
       </div>
 
