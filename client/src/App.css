@@ -257,6 +257,12 @@ img.nav-logo {
 
 /* Layout and Nav */
 
+/* overflow-x: clip stops overflow without creating a scroll container,
+   so position:sticky on the nav still works correctly */
+.site-wrapper {
+  overflow-x: clip;
+}
+
 .app-main {
   max-width: 100%;
   overflow-x: hidden;
@@ -1753,12 +1759,13 @@ html.admin-page-active {
     z-index: 1001;
   }
 
-  /* On mobile, hide the original nav-links container... */
+  /* On mobile, slide the nav off-screen via transform (not right:-100%)
+     so it never creates a scrollable overflow region */
   .nav-links {
-    display: none;
+    display: flex;
     position: fixed;
     top: 0;
-    right: -100%;
+    right: 0;
     width: 80%;
     height: 100vh;
     background-color: var(--surface-color);
@@ -1766,15 +1773,18 @@ html.admin-page-active {
     align-items: center;
     justify-content: center;
     gap: 25px;
-    transition: right 0.4s ease-in-out;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.4s ease-in-out, visibility 0s linear 0.4s;
     box-shadow: -5px 0 15px rgba(0,0,0,0.1);
     z-index: 1000;
   }
 
-  /* ...and only show it as a slide-out menu when it has the 'open' class */
+  /* Slide in and make interactive when open */
   .nav-links.open {
-    display: flex;
-    right: 0;
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.4s ease-in-out, visibility 0s linear 0s;
   }
   
   .nav-link, .nav-login-button, .dashboard-nav button {
