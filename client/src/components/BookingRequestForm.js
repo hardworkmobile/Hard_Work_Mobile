@@ -157,7 +157,7 @@ export default function BookingRequestForm({ defaultService = '', source = 'cont
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden"
+      className="relative bg-white rounded-2xl shadow-lg overflow-hidden"
     >
       {/* Form header */}
       <div className="bg-[#1e2833] px-6 py-5">
