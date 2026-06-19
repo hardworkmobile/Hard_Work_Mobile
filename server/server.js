@@ -58,7 +58,8 @@ const routes = [
     'booking-requests',
     'workOrders',
     'timeSlots',
-    'admin'
+    'admin',
+    'portal'
 ];
 routes.forEach(route => {
     try {
