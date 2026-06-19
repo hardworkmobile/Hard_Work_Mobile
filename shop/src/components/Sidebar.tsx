@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Inbox,
   Newspaper,
+  MessageSquareQuote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/work-orders",      label: "Work Orders", icon: ClipboardList   },
   { href: "/invoices",         label: "Invoices",    icon: FileText        },
   { href: "/admin/blog",       label: "Blog",        icon: Newspaper       },
+  { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
 ];
 
 export function Sidebar() {
