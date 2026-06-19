@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { Resend } = require('resend');
 const BookingRequest = require('../models/BookingRequest');
+const User = require('../models/user.model');
+const auth = require('../middleware/auth');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -82,6 +84,19 @@ function customerHtml(r) {
     </div>
   `;
 }
+
+// GET /api/booking-requests/mine — requests for the logged-in customer (by email)
+router.get('/mine', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('email');
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    const requests = await BookingRequest.find({ email: user.email }).sort({ createdAt: -1 });
+    res.json(requests);
+  } catch (err) {
+    console.error('BookingRequest mine error:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
 
 // GET /api/booking-requests?status=new&limit=50&skip=0
 router.get('/', async (req, res) => {

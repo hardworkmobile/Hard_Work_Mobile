@@ -168,7 +168,24 @@ export async function POST(_req: NextRequest, { params }: Params) {
     body: JSON.stringify({ status: "converted" }),
   });
 
-  // 6. Send confirmation email (fire-and-forget)
+  // 6. Auto-register customer portal account (fire-and-forget)
+  if (booking.email && process.env.PORTAL_INTERNAL_SECRET) {
+    fetch(`${serverUrl}/api/users/portal/auto-register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-secret": process.env.PORTAL_INTERNAL_SECRET,
+      },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email: booking.email,
+        phone: booking.phone,
+      }),
+    }).catch((err: unknown) => console.error("Portal auto-register failed:", err));
+  }
+
+  // 7. Send confirmation email (fire-and-forget)
   if (booking.email) {
     resend.emails
       .send({
