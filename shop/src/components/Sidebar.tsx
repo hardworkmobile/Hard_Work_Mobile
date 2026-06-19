@@ -13,6 +13,7 @@ import {
   LogOut,
   ShieldCheck,
   Inbox,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/customers",        label: "Customers",   icon: Users           },
   { href: "/work-orders",      label: "Work Orders", icon: ClipboardList   },
   { href: "/invoices",         label: "Invoices",    icon: FileText        },
+  { href: "/admin/blog",       label: "Blog",        icon: Newspaper       },
 ];
 
 export function Sidebar() {

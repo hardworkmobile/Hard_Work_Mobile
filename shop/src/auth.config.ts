@@ -30,7 +30,8 @@ export const authConfig = {
     },
     session({ session, token }) {
       if (session.user) {
-        const u = session.user as { role?: string; userType?: string };
+        const u = session.user as { id?: string; role?: string; userType?: string };
+        if (token.sub) u.id = token.sub;
         u.role = token.role as string | undefined;
         // Tokens minted before userType existed (staff) carry a role but no userType.
         u.userType = (token.userType as string | undefined) ?? (token.role ? "staff" : undefined);
