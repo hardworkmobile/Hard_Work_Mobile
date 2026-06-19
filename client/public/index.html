@@ -24,6 +24,23 @@
       gtag('js', new Date());
       gtag('config', 'AW-17853782705');
     </script>
+    <!-- Google Ads: Click-to-call conversion -->
+    <script>
+      function gtag_report_conversion(url) {
+        var callback = function () {
+          if (typeof(url) != 'undefined') {
+            window.location = url;
+          }
+        };
+        gtag('event', 'conversion', {
+          'send_to': 'AW-17853782705/6qciCIHegMIcELG1rMFC',
+          'value': 1.0,
+          'currency': 'USD',
+          'event_callback': callback
+        });
+        return false;
+      }
+    </script>
 </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

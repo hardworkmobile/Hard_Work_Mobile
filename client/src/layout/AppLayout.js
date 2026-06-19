@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, Link, Outlet } from 'react-router-dom';
 import Footer from './Footer';
 import logo from './/images/the_signet_ring.png';
@@ -6,7 +6,19 @@ import ScrollToTop from '../components/ScrollToTop';
 
 export default function AppLayout({ user, onLogout }) {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Fire Google Ads click-to-call conversion on any tel: link click
+  useEffect(() => {
+    const handleTelClick = (e) => {
+      const link = e.target.closest('a[href^="tel:"]');
+      if (link && typeof window.gtag_report_conversion === 'function') {
+        window.gtag_report_conversion(link.href);
+      }
+    };
+    document.addEventListener('click', handleTelClick);
+    return () => document.removeEventListener('click', handleTelClick);
+  }, []);
 
   const handleLogout = () => {
     setIsMenuOpen(false);

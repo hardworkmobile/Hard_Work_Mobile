@@ -82,6 +82,14 @@ function ServiceContactForm({ serviceSlug }) {
       const res = await axios.post('/api/service-request', formData);
       setStatus({ submitted: true, message: res.data.msg, error: false });
       setFormData({ year: '', make: '', model: '', serviceType: SERVICE_LABELS[serviceSlug] || '', urgency: '', name: '', phone: '', email: '' });
+      // Google Ads: fire lead form submission conversion
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'conversion', {
+          send_to: 'AW-17853782705/mu8OCKPS7sEcELG1rMFC',
+          value: 1.0,
+          currency: 'USD',
+        });
+      }
     } catch (err) {
       setStatus({ submitted: true, message: err.response?.data?.msg || 'Something went wrong. Please try again.', error: true });
     } finally {
