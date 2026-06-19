@@ -51,6 +51,7 @@ const routes = [
     'googleReviews', 
     'comments',
     'service-request',
+    'booking-requests',
     'workOrders',
     'timeSlots',
     'admin'

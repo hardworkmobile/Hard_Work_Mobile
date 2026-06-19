@@ -1,92 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import BookingRequestForm from '../components/BookingRequestForm';
 import './ContactPage.css';
 import heroBg from './images/services-hero.jpg';
 
 const SERVICES = [
-  {
-    icon: 'fa-solid fa-microchip',
-    title: 'Vehicle Diagnostics',
-    desc: "Check engine light on? We bring professional OBD-II diagnostic tools to your location and explain exactly what's wrong.",
-    slug: 'diagnostics',
-  },
-  {
-    icon: 'fa-solid fa-circle-dot',
-    title: 'Brake Repair',
-    desc: 'Squealing, grinding, or a soft pedal? Pads, rotors, calipers, and brake fluid — all handled on-site.',
-    slug: 'brakes',
-  },
-  {
-    icon: 'fa-solid fa-gear',
-    title: 'Engine Repair',
-    desc: 'Misfires, overheating, timing belts, head gaskets — most engine repairs done right in your driveway.',
-    slug: 'engine-repair',
-  },
-  {
-    icon: 'fa-solid fa-oil-can',
-    title: 'Scheduled Maintenance',
-    desc: 'Stay on your manufacturer schedule without a shop visit. Tune-ups, fluid flushes, filters, and more.',
-    slug: 'maintenance',
-  },
-  {
-    icon: 'fa-solid fa-car-side',
-    title: 'Suspension Repair',
-    desc: 'Clunking, rough ride, or pulling? Struts, ball joints, tie rods, and control arms replaced on-site.',
-    slug: 'suspension',
-  },
-  {
-    icon: 'fa-solid fa-bolt',
-    title: 'Electrical Repair',
-    desc: 'Dead battery, bad alternator, wiring faults — we diagnose and fix electrical problems wherever your car is.',
-    slug: 'electrical',
-  },
+  { icon: 'fa-solid fa-microchip',    title: 'Vehicle Diagnostics',   desc: "Check engine light on? We bring professional OBD-II diagnostic tools to your location and explain exactly what's wrong.", slug: 'diagnostics' },
+  { icon: 'fa-solid fa-circle-dot',   title: 'Brake Repair',          desc: 'Squealing, grinding, or a soft pedal? Pads, rotors, calipers, and brake fluid — all handled on-site.',              slug: 'brakes' },
+  { icon: 'fa-solid fa-gear',         title: 'Engine Repair',         desc: 'Misfires, overheating, timing belts, head gaskets — most engine repairs done right in your driveway.',                slug: 'engine-repair' },
+  { icon: 'fa-solid fa-oil-can',      title: 'Scheduled Maintenance', desc: 'Stay on your manufacturer schedule without a shop visit. Tune-ups, fluid flushes, filters, and more.',              slug: 'maintenance' },
+  { icon: 'fa-solid fa-car-side',     title: 'Suspension Repair',     desc: 'Clunking, rough ride, or pulling? Struts, ball joints, tie rods, and control arms replaced on-site.',                slug: 'suspension' },
+  { icon: 'fa-solid fa-bolt',         title: 'Electrical Repair',     desc: 'Dead battery, bad alternator, wiring faults — we diagnose and fix electrical problems wherever your car is.',         slug: 'electrical' },
 ];
 
 function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: '',
-  });
-  const [status, setStatus] = useState({ submitted: false, message: '', error: false });
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const res = await axios.post('/api/contact', formData);
-      setStatus({ submitted: true, message: res.data.msg, error: false });
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-      // Google Ads: fire lead form submission conversion
-      try {
-        window.gtag('event', 'conversion', {
-          send_to: 'AW-17853782705/mu8OCKPS7sEcELG1rMFC',
-          value: 1.0,
-          currency: 'USD',
-        });
-        console.log('[GA] Lead form conversion fired');
-      } catch (gtagErr) {
-        console.warn('[GA] gtag conversion error:', gtagErr);
-      }
-    } catch (err) {
-      setStatus({
-        submitted: true,
-        message: err.response?.data?.msg || 'Something went wrong. Please try again.',
-        error: true,
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div>
 
@@ -249,71 +176,10 @@ function ContactPage() {
         </div>
       </div>
 
-      {/* ── Contact Form ── */}
+      {/* ── Booking Request Form ── */}
       <div id="cp-form" className="cp-form-bg">
         <div className="cp-form-inner">
-          <h2 className="cp-section-title">Get a Free Quote</h2>
-          <p className="cp-section-subtitle">
-            Tell us about your vehicle and what's going on. We'll get back to you promptly
-            with an honest assessment and upfront pricing.
-          </p>
-          <form className="cp-form" onSubmit={handleSubmit}>
-            <div className="cp-form-row">
-              <div className="cp-form-group">
-                <label htmlFor="cp-name">Your Name *</label>
-                <input
-                  id="cp-name" type="text" name="name"
-                  value={formData.name} onChange={handleChange}
-                  placeholder="Full name" required
-                />
-              </div>
-              <div className="cp-form-group">
-                <label htmlFor="cp-email">Email Address *</label>
-                <input
-                  id="cp-email" type="email" name="email"
-                  value={formData.email} onChange={handleChange}
-                  placeholder="you@example.com" required
-                />
-              </div>
-            </div>
-            <div className="cp-form-row">
-              <div className="cp-form-group">
-                <label htmlFor="cp-phone">Phone Number</label>
-                <input
-                  id="cp-phone" type="tel" name="phone"
-                  value={formData.phone} onChange={handleChange}
-                  placeholder="(555) 555-5555"
-                />
-              </div>
-              <div className="cp-form-group">
-                <label htmlFor="cp-subject">Subject *</label>
-                <input
-                  id="cp-subject" type="text" name="subject"
-                  value={formData.subject} onChange={handleChange}
-                  placeholder="e.g. Brake repair quote, check engine light…" required
-                />
-              </div>
-            </div>
-            <div className="cp-form-group">
-              <label htmlFor="cp-message">Tell Us About Your Vehicle &amp; Issue *</label>
-              <textarea
-                id="cp-message" name="message"
-                value={formData.message} onChange={handleChange}
-                placeholder="Year, make, model, and what's going on with the car…"
-                rows={5} required
-              />
-            </div>
-
-            {status.submitted && (
-              <div className={status.error ? 'cp-form-error' : 'cp-form-success'}>
-                {status.message}
-              </div>
-            )}
-
-            <button type="submit" className="cp-form-submit" disabled={submitting}>
-              {submitting ? 'Sending…' : 'Send My Quote Request'}
-            </button>
-          </form>
+          <BookingRequestForm source="contact" />
         </div>
       </div>
 

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import axios from 'axios';
+import BookingRequestForm from '../components/BookingRequestForm';
 import './ServiceLandingPage.css';
 import servicesBg from './images/services-hero.jpg';
 
@@ -13,193 +13,6 @@ const SERVICE_LABELS = {
   electrical: 'Electrical Repair',
 };
 
-const URGENCY_OPTIONS = [
-  'As soon as possible',
-  'Within 1 week',
-  'Within 2 weeks',
-  'Within a month',
-  'Flexible / No rush',
-];
-
-const VEHICLE_MAKES = [
-  'Acura', 'Alfa Romeo', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 'Buick',
-  'Cadillac', 'Chevrolet', 'Chrysler', 'Dodge', 'Ferrari', 'FIAT', 'Ford',
-  'Genesis', 'GMC', 'Honda', 'Hyundai', 'Infiniti', 'Jaguar', 'Jeep', 'Kia',
-  'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln', 'Maserati', 'Mazda',
-  'Mercedes-Benz', 'MINI', 'Mitsubishi', 'Nissan', 'Pontiac', 'Porsche',
-  'RAM', 'Rolls-Royce', 'Saturn', 'Scion', 'Subaru', 'Tesla', 'Toyota',
-  'Volkswagen', 'Volvo',
-];
-
-function ServiceContactForm({ serviceSlug }) {
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear + 2 - 1985 }, (_, i) => currentYear + 1 - i);
-
-  const [formData, setFormData] = useState({
-    year: '',
-    make: '',
-    model: '',
-    serviceType: SERVICE_LABELS[serviceSlug] || '',
-    urgency: '',
-    name: '',
-    phone: '',
-    email: '',
-  });
-  const [status, setStatus] = useState({ submitted: false, message: '', error: false });
-  const [submitting, setSubmitting] = useState(false);
-  const [models, setModels] = useState([]);
-  const [modelsLoading, setModelsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!formData.make) {
-      setModels([]);
-      return;
-    }
-    setModelsLoading(true);
-    fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${encodeURIComponent(formData.make)}?format=json`
-    )
-      .then((r) => r.json())
-      .then((data) => setModels(data.Results.map((m) => m.Model_Name).sort()))
-      .catch(() => setModels([]))
-      .finally(() => setModelsLoading(false));
-  }, [formData.make]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    // Reset model when make changes
-    if (name === 'make') {
-      setFormData((prev) => ({ ...prev, make: value, model: '' }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const res = await axios.post('/api/service-request', formData);
-      setStatus({ submitted: true, message: res.data.msg, error: false });
-      setFormData({ year: '', make: '', model: '', serviceType: SERVICE_LABELS[serviceSlug] || '', urgency: '', name: '', phone: '', email: '' });
-      // Google Ads: fire lead form submission conversion
-      try {
-        window.gtag('event', 'conversion', {
-          send_to: 'AW-17853782705/mu8OCKPS7sEcELG1rMFC',
-          value: 1.0,
-          currency: 'USD',
-        });
-        console.log('[GA] Lead form conversion fired');
-      } catch (gtagErr) {
-        console.warn('[GA] gtag conversion error:', gtagErr);
-      }
-    } catch (err) {
-      setStatus({ submitted: true, message: err.response?.data?.msg || 'Something went wrong. Please try again.', error: true });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="slp-form-bg">
-      <div className="slp-form-inner">
-        <h2 className="slp-section-title">Request Service</h2>
-        <p className="slp-section-subtitle">
-          Fill out the form below and we'll get back to you with a quote and next steps.
-        </p>
-        <form className="slp-form" onSubmit={handleSubmit}>
-          {/* Vehicle info row */}
-          <div className="slp-form-row">
-            <div className="slp-form-group">
-              <label htmlFor="slp-year">Year *</label>
-              <select id="slp-year" name="year" value={formData.year} onChange={handleChange} required>
-                <option value="" disabled>Select year</option>
-                {years.map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-            <div className="slp-form-group">
-              <label htmlFor="slp-make">Make *</label>
-              <select id="slp-make" name="make" value={formData.make} onChange={handleChange} required>
-                <option value="" disabled>Select make</option>
-                {VEHICLE_MAKES.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div className="slp-form-group">
-              <label htmlFor="slp-model">Model *</label>
-              <select
-                id="slp-model"
-                name="model"
-                value={formData.model}
-                onChange={handleChange}
-                required
-                disabled={!formData.make || modelsLoading}
-              >
-                <option value="" disabled>
-                  {!formData.make ? 'Select make first' : modelsLoading ? 'Loading...' : 'Select model'}
-                </option>
-                {models.map((m) => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Service type + urgency */}
-          <div className="slp-form-row-2">
-            <div className="slp-form-group">
-              <label htmlFor="slp-serviceType">Service Type *</label>
-              <select id="slp-serviceType" name="serviceType" value={formData.serviceType} onChange={handleChange} required>
-                <option value="" disabled>Select a service</option>
-                {Object.values(SERVICE_LABELS).map((label) => (
-                  <option key={label} value={label}>{label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="slp-form-group">
-              <label htmlFor="slp-urgency">How Soon Do You Need Service? *</label>
-              <select id="slp-urgency" name="urgency" value={formData.urgency} onChange={handleChange} required>
-                <option value="" disabled>Select timeframe</option>
-                {URGENCY_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Contact info */}
-          <div className="slp-form-row">
-            <div className="slp-form-group">
-              <label htmlFor="slp-name">Your Name *</label>
-              <input id="slp-name" type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full name" required />
-            </div>
-            <div className="slp-form-group">
-              <label htmlFor="slp-phone">Phone Number *</label>
-              <input id="slp-phone" type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="(555) 555-5555" required />
-            </div>
-            <div className="slp-form-group">
-              <label htmlFor="slp-email">Email Address *</label>
-              <input id="slp-email" type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
-            </div>
-          </div>
-
-          {status.submitted && (
-            <div className={status.error ? 'slp-form-error' : 'slp-form-success'}>
-              {status.message}
-            </div>
-          )}
-
-          <button type="submit" className="slp-form-submit" disabled={submitting}>
-            {submitting ? 'Sending...' : 'Submit Request'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 // ── Page data ──────────────────────────────────────────────────────────────────
 const SERVICE_DATA = {
@@ -587,9 +400,14 @@ export default function ServiceLandingPage() {
         </div>
       </div>
 
-      {/* ── Contact Form ── */}
-      <div id="slp-request-form">
-        <ServiceContactForm serviceSlug={serviceSlug} />
+      {/* ── Booking Request Form ── */}
+      <div id="slp-request-form" className="slp-form-bg">
+        <div className="slp-form-inner">
+          <BookingRequestForm
+            defaultService={SERVICE_LABELS[serviceSlug] || ''}
+            source={`landing-${serviceSlug}`}
+          />
+        </div>
       </div>
 
       {/* ── Bottom CTA ── */}

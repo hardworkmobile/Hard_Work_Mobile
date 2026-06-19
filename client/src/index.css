@@ -74,3 +74,6 @@ body {
   flex-direction: column;
   gap: 15px;
 }
+
+/* Tailwind utility layer — preflight disabled, existing styles unaffected */
+@tailwind utilities;
