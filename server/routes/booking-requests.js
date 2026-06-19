@@ -83,6 +83,54 @@ function customerHtml(r) {
   `;
 }
 
+// GET /api/booking-requests?status=new&limit=50&skip=0
+router.get('/', async (req, res) => {
+  const { status, limit = 50, skip = 0 } = req.query;
+  const query = status ? { status } : {};
+  try {
+    const [total, requests] = await Promise.all([
+      BookingRequest.countDocuments(query),
+      BookingRequest.find(query)
+        .sort({ createdAt: -1 })
+        .limit(Number(limit))
+        .skip(Number(skip)),
+    ]);
+    res.json({ requests, total });
+  } catch (err) {
+    console.error('BookingRequest list error:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// GET /api/booking-requests/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const r = await BookingRequest.findById(req.params.id);
+    if (!r) return res.status(404).json({ msg: 'Not found' });
+    res.json(r);
+  } catch (err) {
+    console.error('BookingRequest get error:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// PATCH /api/booking-requests/:id — update status
+router.patch('/:id', async (req, res) => {
+  const { status } = req.body;
+  try {
+    const r = await BookingRequest.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+    if (!r) return res.status(404).json({ msg: 'Not found' });
+    res.json(r);
+  } catch (err) {
+    console.error('BookingRequest patch error:', err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
 // POST /api/booking-requests
 router.post('/', async (req, res) => {
   const {

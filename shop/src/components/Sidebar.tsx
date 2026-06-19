@@ -12,14 +12,16 @@ import {
   Wrench,
   LogOut,
   ShieldCheck,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard",   label: "Dashboard",   icon: LayoutDashboard },
-  { href: "/customers",   label: "Customers",   icon: Users           },
-  { href: "/work-orders", label: "Work Orders", icon: ClipboardList   },
-  { href: "/invoices",    label: "Invoices",    icon: FileText        },
+  { href: "/dashboard",        label: "Dashboard",   icon: LayoutDashboard },
+  { href: "/booking-requests", label: "Bookings",    icon: Inbox           },
+  { href: "/customers",        label: "Customers",   icon: Users           },
+  { href: "/work-orders",      label: "Work Orders", icon: ClipboardList   },
+  { href: "/invoices",         label: "Invoices",    icon: FileText        },
 ];
 
 export function Sidebar() {

@@ -26,7 +26,7 @@ const bookingRequestSchema = new mongoose.Schema(
     source:           { type: String, default: 'contact' },
     status:           {
       type: String,
-      enum: ['new', 'contacted', 'scheduled', 'completed', 'cancelled'],
+      enum: ['new', 'contacted', 'scheduled', 'completed', 'cancelled', 'converted', 'declined'],
       default: 'new',
     },
   },
