@@ -26,10 +26,11 @@ export async function loginAction(_: unknown, formData: FormData) {
     // salt must match the cookie name so the middleware can decode it.
     const jwt = await encode({
       token: {
-        sub:   user.id,
-        name:  user.name,
-        email: user.email,
-        role:  user.role,
+        sub:      user.id,
+        name:     user.name,
+        email:    user.email,
+        role:     user.role,
+        userType: "staff",
       },
       secret: process.env.AUTH_SECRET!,
       salt:   COOKIE,

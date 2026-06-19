@@ -3,19 +3,52 @@ import { NextResponse } from "next/server";
 
 const COOKIE = "authjs.session-token";
 
-// Check cookie existence only — no crypto in Edge runtime.
-// The JWT itself was validated at login; here we just gate access to pages.
-export default function proxy(request: NextRequest) {
-  const isLoginPage = request.nextUrl.pathname === "/login";
-  const isLoggedIn  = !!request.cookies.get(COOKIE)?.value;
+// Staff admin lives at these root-level URLs. Anything not listed here and not
+// under /portal is treated as public (marketing, blog, testimonials, etc.).
+const STAFF_PREFIXES = [
+  "/dashboard",
+  "/customers",
+  "/work-orders",
+  "/invoices",
+  "/booking-requests",
+  "/inspections",
+  "/admin",
+  "/users",
+];
 
-  if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-  if (!isLoggedIn && !isLoginPage) {
+// Portal auth pages must stay reachable while logged out.
+const PORTAL_AUTH_PAGES = [
+  "/portal/login",
+  "/portal/register",
+  "/portal/forgot-password",
+  "/portal/reset-password",
+];
+
+function underAny(pathname: string, prefixes: string[]) {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
+// Coarse, optimistic gate only — we check for the session cookie's presence (no
+// crypto in the Edge runtime). Fine-grained staff-vs-customer enforcement is done
+// in the (shop) and portal layouts via auth().
+export default function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isLoggedIn = !!request.cookies.get(COOKIE)?.value;
+
+  if (isLoggedIn) return NextResponse.next();
+
+  if (underAny(pathname, STAFF_PREFIXES)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  const isPortalArea =
+    (pathname === "/portal" || pathname.startsWith("/portal/")) &&
+    !underAny(pathname, PORTAL_AUTH_PAGES);
+  if (isPortalArea) {
+    return NextResponse.redirect(new URL("/portal/login", request.url));
+  }
+
+  // Public route — allow through.
   return NextResponse.next();
 }
 

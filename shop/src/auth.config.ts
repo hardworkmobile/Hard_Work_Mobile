@@ -21,11 +21,20 @@ export const authConfig = {
       return true;
     },
     jwt({ token, user }) {
-      if (user) token.role = (user as { role: string }).role;
+      if (user) {
+        const u = user as { role?: string; userType?: string };
+        if (u.role) token.role = u.role;
+        if (u.userType) token.userType = u.userType;
+      }
       return token;
     },
     session({ session, token }) {
-      if (session.user) (session.user as { role?: string }).role = token.role as string;
+      if (session.user) {
+        const u = session.user as { role?: string; userType?: string };
+        u.role = token.role as string | undefined;
+        // Tokens minted before userType existed (staff) carry a role but no userType.
+        u.userType = (token.userType as string | undefined) ?? (token.role ? "staff" : undefined);
+      }
       return session;
     },
   },

@@ -18,6 +18,8 @@ model User {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  posts Post[]
 }
 
 enum UserRole {
@@ -31,7 +33,7 @@ model Customer {
   id          String   @id @default(cuid())
   firstName   String
   lastName    String
-  email       String?
+  email       String?  @unique
   phone       String
   address     String?
   city        String?
@@ -39,15 +41,24 @@ model Customer {
   zip         String?
   notes       String?
   squareId    String?  // Square customer ID for syncing
+
+  // Customer-portal login (null passwordHash = shop-created customer with no portal access yet)
+  passwordHash         String?
+  emailVerified        Boolean   @default(false)
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  vehicles   Vehicle[]
-  workOrders WorkOrder[]
-  invoices   Invoice[]
+  vehicles        Vehicle[]
+  workOrders      WorkOrder[]
+  invoices        Invoice[]
+  bookingRequests BookingRequest[]
+  testimonials    Testimonial[]
+  comments        Comment[]
 
   @@index([lastName, firstName])
-  @@index([email])
   @@index([phone])
 }
 
@@ -268,4 +279,143 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+// ─── Booking Requests ───────────────────────────────────────────────────────────
+// Public booking intake (replaces the old MongoDB time-slot booking system and the
+// Express proxy at src/app/api/booking-requests). Feeds the admin approve/decline flow.
+
+model BookingRequest {
+  id                String              @id @default(cuid())
+  name              String
+  email             String
+  phone             String
+  vehicleYear       Int
+  vehicleMake       String
+  vehicleModel      String
+  service           String              // free-text service label (no Service catalog anymore)
+  serviceOther      String?
+  preferredDate     DateTime
+  preferredTimeSlot PreferredTimeSlot
+  serviceAddress    String
+  source            String              @default("contact") // contact / landing-brakes / etc.
+  status            BookingRequestStatus @default(NEW)
+  customerId        String?             // linked once a portal customer is matched/created
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([email])
+  @@index([customerId])
+}
+
+enum PreferredTimeSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum BookingRequestStatus {
+  NEW
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  CONVERTED
+  DECLINED
+}
+
+// ─── Blog ─────────────────────────────────────────────────────────────────────
+
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String
+  summary       String?
+  heroImage     String?
+  allowComments Boolean   @default(true)
+  publishedAt   DateTime? // null = draft
+  authorId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  author   User      @relation(fields: [authorId], references: [id])
+  comments Comment[]
+
+  @@index([slug])
+  @@index([publishedAt])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  text       String
+  authorName String
+  postId     String
+  customerId String?  // set when a logged-in portal customer comments
+  createdAt  DateTime @default(now())
+
+  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+}
+
+// ─── Testimonials ───────────────────────────────────────────────────────────────
+// Admin-moderated. Customers can submit from their portal dashboard (status PENDING).
+
+model Testimonial {
+  id              String            @id @default(cuid())
+  quote           String
+  rating          Int               // 1–5
+  authorName      String
+  serviceLabel    String?           // free-text (old Service FK dropped on migration)
+  profileImageUrl String?
+  status          TestimonialStatus @default(PENDING)
+  adminReply      String?
+  customerId      String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([customerId])
+}
+
+enum TestimonialStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
+
+// ─── Quote Requests ─────────────────────────────────────────────────────────────
+// "Need help with your vehicle?" submissions (was MongoDB ServiceHelpForm).
+
+model QuoteRequest {
+  id                  String      @id @default(cuid())
+  name                String
+  email               String
+  phone               String?
+  generalIssue        String
+  detailedDescription String
+  carMake             String
+  carModel            String
+  carTrim             String?
+  vin                 String
+  status              QuoteStatus @default(PENDING)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([status])
+  @@index([email])
+}
+
+enum QuoteStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
