@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
 import { Resend } from "resend";
 
 type Params = { params: Promise<{ id: string }> };
 
-const serverUrl = process.env.SERVER_URL ?? "http://localhost:5000";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM_EMAIL ?? "Hard Work Mobile <onboarding@resend.dev>";
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(value: Date | string) {
+  return new Date(value).toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -18,7 +18,7 @@ function formatDate(iso: string) {
   });
 }
 
-function declineEmailHtml(firstName: string, service: string, preferredDate: string) {
+function declineEmailHtml(firstName: string, service: string, preferredDate: Date | string) {
   return `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
       <div style="background:#1e2833;padding:24px;border-radius:8px 8px 0 0;text-align:center;">
@@ -51,44 +51,32 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const { id } = await params;
 
-  // 1. Fetch the booking to get customer info for the email
-  const bookingRes = await fetch(`${serverUrl}/api/booking-requests/${id}`, { cache: "no-store" });
-  if (!bookingRes.ok) {
+  const booking = await prisma.bookingRequest.findUnique({ where: { id } });
+  if (!booking) {
     return NextResponse.json({ error: "Booking request not found" }, { status: 404 });
   }
-  const booking = await bookingRes.json();
-
-  if (booking.status !== "new") {
-    return NextResponse.json({ error: `Booking is already ${booking.status}` }, { status: 409 });
+  if (booking.status !== "NEW") {
+    return NextResponse.json({ error: `Booking is already ${booking.status.toLowerCase()}` }, { status: 409 });
   }
 
-  // 2. Mark as declined in MongoDB
-  const patchRes = await fetch(`${serverUrl}/api/booking-requests/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "declined" }),
+  await prisma.bookingRequest.update({
+    where: { id },
+    data: { status: "DECLINED" },
   });
-  if (!patchRes.ok) {
-    return NextResponse.json({ error: "Failed to update booking status" }, { status: 502 });
-  }
 
-  // 3. Send decline email (fire-and-forget)
-  if (booking.email) {
-    const firstName = (booking.name as string).split(" ")[0] ?? booking.name;
-    const service =
-      booking.service === "Other"
-        ? (booking.serviceOther as string) ?? "service"
-        : (booking.service as string);
+  // Send decline email (fire-and-forget)
+  const firstName = booking.name.split(" ")[0] ?? booking.name;
+  const service =
+    booking.service === "Other" ? booking.serviceOther ?? "service" : booking.service;
 
-    resend.emails
-      .send({
-        from: FROM,
-        to: [booking.email as string],
-        subject: "Regarding Your Booking Request — Hard Work Mobile",
-        html: declineEmailHtml(firstName, service, booking.preferredDate as string),
-      })
-      .catch((err: unknown) => console.error("Decline email failed:", err));
-  }
+  resend.emails
+    .send({
+      from: FROM,
+      to: [booking.email],
+      subject: "Regarding Your Booking Request — Hard Work Mobile",
+      html: declineEmailHtml(firstName, service, booking.preferredDate),
+    })
+    .catch((err: unknown) => console.error("Decline email failed:", err));
 
   return NextResponse.json({ ok: true });
 }

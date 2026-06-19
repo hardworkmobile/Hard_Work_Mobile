@@ -2,17 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { Resend } from "resend";
+import type { PreferredTimeSlot } from "@/generated/prisma";
 
 type Params = { params: Promise<{ id: string }> };
 
-const serverUrl = process.env.SERVER_URL ?? "http://localhost:5000";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM_EMAIL ?? "Hard Work Mobile <onboarding@resend.dev>";
 
-const TIME_SLOT_LABELS: Record<string, string> = {
-  morning: "Morning (8 AM – 12 PM)",
-  afternoon: "Afternoon (12 PM – 5 PM)",
-  evening: "Evening (5 PM – 7 PM)",
+const TIME_SLOT_LABELS: Record<PreferredTimeSlot, string> = {
+  MORNING: "Morning (8 AM – 12 PM)",
+  AFTERNOON: "Afternoon (12 PM – 5 PM)",
+  EVENING: "Evening (5 PM – 7 PM)",
 };
 
 function splitName(full: string): { firstName: string; lastName: string } {
@@ -21,8 +21,8 @@ function splitName(full: string): { firstName: string; lastName: string } {
   return { firstName: full.slice(0, idx), lastName: full.slice(idx + 1) };
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(value: Date | string) {
+  return new Date(value).toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -50,8 +50,8 @@ function approvalEmailHtml(params: {
   vehicleMake: string;
   vehicleModel: string;
   service: string;
-  preferredDate: string;
-  preferredTimeSlot: string;
+  preferredDate: Date | string;
+  preferredTimeSlot: PreferredTimeSlot;
   serviceAddress: string;
 }) {
   const { firstName, woNumber, vehicleYear, vehicleMake, vehicleModel, service, preferredDate, preferredTimeSlot, serviceAddress } = params;
@@ -88,31 +88,28 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const { id } = await params;
 
-  // 1. Fetch the booking from the Express server
-  const bookingRes = await fetch(`${serverUrl}/api/booking-requests/${id}`, { cache: "no-store" });
-  if (!bookingRes.ok) {
+  // 1. Load the booking request
+  const booking = await prisma.bookingRequest.findUnique({ where: { id } });
+  if (!booking) {
     return NextResponse.json({ error: "Booking request not found" }, { status: 404 });
   }
-  const booking = await bookingRes.json();
-
-  if (booking.status !== "new") {
-    return NextResponse.json({ error: `Booking is already ${booking.status}` }, { status: 409 });
+  if (booking.status !== "NEW") {
+    return NextResponse.json({ error: `Booking is already ${booking.status.toLowerCase()}` }, { status: 409 });
   }
 
   // 2. Find or create the customer (match by email)
-  const { firstName, lastName } = splitName(booking.name as string);
-  let customer = booking.email
-    ? await prisma.customer.findFirst({ where: { email: (booking.email as string).toLowerCase() } })
-    : null;
+  const { firstName, lastName } = splitName(booking.name);
+  const email = booking.email.toLowerCase();
+  let customer = await prisma.customer.findFirst({ where: { email } });
 
   if (!customer) {
     customer = await prisma.customer.create({
       data: {
         firstName,
         lastName,
-        email: (booking.email as string).toLowerCase(),
-        phone: booking.phone as string,
-        address: booking.serviceAddress as string,
+        email,
+        phone: booking.phone,
+        address: booking.serviceAddress,
         notes: "Created from booking request form.",
       },
     });
@@ -122,9 +119,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
   let vehicle = await prisma.vehicle.findFirst({
     where: {
       customerId: customer.id,
-      year: Number(booking.vehicleYear),
-      make: booking.vehicleMake as string,
-      model: booking.vehicleModel as string,
+      year: booking.vehicleYear,
+      make: booking.vehicleMake,
+      model: booking.vehicleModel,
     },
   });
 
@@ -132,9 +129,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
     vehicle = await prisma.vehicle.create({
       data: {
         customerId: customer.id,
-        year: Number(booking.vehicleYear),
-        make: booking.vehicleMake as string,
-        model: booking.vehicleModel as string,
+        year: booking.vehicleYear,
+        make: booking.vehicleMake,
+        model: booking.vehicleModel,
       },
     });
   }
@@ -142,11 +139,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
   // 4. Create the work order
   const woNumber = await nextWorkOrderNumber();
   const serviceLabel =
-    booking.service === "Other"
-      ? `Other: ${booking.serviceOther ?? ""}`
-      : (booking.service as string);
+    booking.service === "Other" ? `Other: ${booking.serviceOther ?? ""}` : booking.service;
 
-  const scheduledAt = new Date(booking.preferredDate as string);
+  const scheduledAt = new Date(booking.preferredDate);
   scheduledAt.setUTCHours(12, 0, 0, 0); // default to noon
 
   const workOrder = await prisma.workOrder.create({
@@ -155,57 +150,37 @@ export async function POST(_req: NextRequest, { params }: Params) {
       customerId: customer.id,
       vehicleId: vehicle.id,
       description: serviceLabel,
-      serviceLocation: booking.serviceAddress as string,
+      serviceLocation: booking.serviceAddress,
       scheduledAt,
-      customerNotes: `Preferred time: ${TIME_SLOT_LABELS[booking.preferredTimeSlot as string] ?? booking.preferredTimeSlot}. Source: ${booking.source}.`,
+      customerNotes: `Preferred time: ${TIME_SLOT_LABELS[booking.preferredTimeSlot]}. Source: ${booking.source}.`,
     },
   });
 
-  // 5. Mark booking as converted in MongoDB
-  await fetch(`${serverUrl}/api/booking-requests/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "converted" }),
+  // 5. Mark booking as converted and link the customer
+  await prisma.bookingRequest.update({
+    where: { id },
+    data: { status: "CONVERTED", customerId: customer.id },
   });
 
-  // 6. Auto-register customer portal account (fire-and-forget)
-  if (booking.email && process.env.PORTAL_INTERNAL_SECRET) {
-    fetch(`${serverUrl}/api/users/portal/auto-register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-secret": process.env.PORTAL_INTERNAL_SECRET,
-      },
-      body: JSON.stringify({
+  // 6. Send confirmation email (fire-and-forget)
+  resend.emails
+    .send({
+      from: FROM,
+      to: [booking.email],
+      subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
+      html: approvalEmailHtml({
         firstName,
-        lastName,
-        email: booking.email,
-        phone: booking.phone,
+        woNumber,
+        vehicleYear: booking.vehicleYear,
+        vehicleMake: booking.vehicleMake,
+        vehicleModel: booking.vehicleModel,
+        service: serviceLabel,
+        preferredDate: booking.preferredDate,
+        preferredTimeSlot: booking.preferredTimeSlot,
+        serviceAddress: booking.serviceAddress,
       }),
-    }).catch((err: unknown) => console.error("Portal auto-register failed:", err));
-  }
-
-  // 7. Send confirmation email (fire-and-forget)
-  if (booking.email) {
-    resend.emails
-      .send({
-        from: FROM,
-        to: [booking.email as string],
-        subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
-        html: approvalEmailHtml({
-          firstName,
-          woNumber,
-          vehicleYear: Number(booking.vehicleYear),
-          vehicleMake: booking.vehicleMake as string,
-          vehicleModel: booking.vehicleModel as string,
-          service: serviceLabel,
-          preferredDate: booking.preferredDate as string,
-          preferredTimeSlot: booking.preferredTimeSlot as string,
-          serviceAddress: booking.serviceAddress as string,
-        }),
-      })
-      .catch((err: unknown) => console.error("Approval email failed:", err));
-  }
+    })
+    .catch((err: unknown) => console.error("Approval email failed:", err));
 
   return NextResponse.json({
     workOrderId: workOrder.id,

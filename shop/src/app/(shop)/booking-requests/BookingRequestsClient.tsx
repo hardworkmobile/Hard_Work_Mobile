@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 type BookingRequest = {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -16,7 +16,7 @@ type BookingRequest = {
   service: string;
   serviceOther?: string;
   preferredDate: string;
-  preferredTimeSlot: "morning" | "afternoon" | "evening";
+  preferredTimeSlot: "MORNING" | "AFTERNOON" | "EVENING";
   serviceAddress: string;
   source: string;
   status: string;
@@ -26,26 +26,26 @@ type BookingRequest = {
 type ActionResult = { workOrderId?: string; workOrderNumber?: string } | null;
 
 const TIME_SLOT_LABELS: Record<string, string> = {
-  morning: "Morning · 8–12 PM",
-  afternoon: "Afternoon · 12–5 PM",
-  evening: "Evening · 5–7 PM",
+  MORNING: "Morning · 8–12 PM",
+  AFTERNOON: "Afternoon · 12–5 PM",
+  EVENING: "Evening · 5–7 PM",
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  new:       "bg-blue-100 text-blue-700",
-  contacted: "bg-yellow-100 text-yellow-700",
-  scheduled: "bg-purple-100 text-purple-700",
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-gray-100 text-gray-600",
-  converted: "bg-emerald-100 text-emerald-700",
-  declined:  "bg-red-100 text-red-700",
+  NEW:       "bg-blue-100 text-blue-700",
+  CONTACTED: "bg-yellow-100 text-yellow-700",
+  SCHEDULED: "bg-purple-100 text-purple-700",
+  COMPLETED: "bg-green-100 text-green-700",
+  CANCELLED: "bg-gray-100 text-gray-600",
+  CONVERTED: "bg-emerald-100 text-emerald-700",
+  DECLINED:  "bg-red-100 text-red-700",
 };
 
 const TABS = [
   { label: "All",       value: ""          },
-  { label: "New",       value: "new"       },
-  { label: "Converted", value: "converted" },
-  { label: "Declined",  value: "declined"  },
+  { label: "New",       value: "NEW"       },
+  { label: "Converted", value: "CONVERTED" },
+  { label: "Declined",  value: "DECLINED"  },
 ];
 
 function formatShortDate(iso: string) {
@@ -114,7 +114,7 @@ export function BookingRequestsClient() {
     }
   }
 
-  const newCount = requests.filter((r) => r.status === "new").length;
+  const newCount = requests.filter((r) => r.status === "NEW").length;
 
   return (
     <div className="p-8 max-w-7xl">
@@ -215,13 +215,13 @@ export function BookingRequestsClient() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {requests.map((r) => {
-                const isPending = pending?.id === r._id;
-                const isLoading = actionLoading === r._id;
+                const isPending = pending?.id === r.id;
+                const isLoading = actionLoading === r.id;
                 const serviceLabel =
                   r.service === "Other" ? r.serviceOther || "Other" : r.service;
 
                 return (
-                  <tr key={r._id} className={cn("transition-colors", isLoading ? "opacity-60" : "hover:bg-gray-50")}>
+                  <tr key={r.id} className={cn("transition-colors", isLoading ? "opacity-60" : "hover:bg-gray-50")}>
                     {/* Customer */}
                     <td className="px-4 py-3 align-top">
                       <p className="font-semibold text-gray-900">{r.name}</p>
@@ -283,7 +283,7 @@ export function BookingRequestsClient() {
                           STATUS_STYLES[r.status] ?? "bg-gray-100 text-gray-600"
                         )}
                       >
-                        {r.status}
+                        {r.status.toLowerCase()}
                       </span>
                     </td>
 
@@ -293,7 +293,7 @@ export function BookingRequestsClient() {
                         <div className="flex justify-end pt-1">
                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
                         </div>
-                      ) : r.status === "new" ? (
+                      ) : r.status === "NEW" ? (
                         isPending ? (
                           <div className="flex flex-col items-end gap-1.5">
                             <p className="text-xs text-gray-500">
@@ -303,7 +303,7 @@ export function BookingRequestsClient() {
                             </p>
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => handleAction(r._id, pending.type)}
+                                onClick={() => handleAction(r.id, pending.type)}
                                 className={cn(
                                   "rounded-md px-3 py-1.5 text-xs font-semibold text-white transition-colors",
                                   pending.type === "approve"
@@ -324,14 +324,14 @@ export function BookingRequestsClient() {
                         ) : (
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => setPending({ id: r._id, type: "approve" })}
+                              onClick={() => setPending({ id: r.id, type: "approve" })}
                               className="flex items-center gap-1 rounded-md bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors"
                             >
                               <Check className="h-3.5 w-3.5" />
                               Approve
                             </button>
                             <button
-                              onClick={() => setPending({ id: r._id, type: "decline" })}
+                              onClick={() => setPending({ id: r.id, type: "decline" })}
                               className="flex items-center gap-1 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
                             >
                               <X className="h-3.5 w-3.5" />
