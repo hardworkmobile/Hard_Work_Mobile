@@ -83,12 +83,15 @@ function ServiceContactForm({ serviceSlug }) {
       setStatus({ submitted: true, message: res.data.msg, error: false });
       setFormData({ year: '', make: '', model: '', serviceType: SERVICE_LABELS[serviceSlug] || '', urgency: '', name: '', phone: '', email: '' });
       // Google Ads: fire lead form submission conversion
-      if (typeof window.gtag === 'function') {
+      try {
         window.gtag('event', 'conversion', {
           send_to: 'AW-17853782705/mu8OCKPS7sEcELG1rMFC',
           value: 1.0,
           currency: 'USD',
         });
+        console.log('[GA] Lead form conversion fired');
+      } catch (gtagErr) {
+        console.warn('[GA] gtag conversion error:', gtagErr);
       }
     } catch (err) {
       setStatus({ submitted: true, message: err.response?.data?.msg || 'Something went wrong. Please try again.', error: true });
