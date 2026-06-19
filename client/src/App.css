@@ -258,7 +258,8 @@ img.nav-logo {
 /* Layout and Nav */
 
 .app-main {
-  max-width: 100vw;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Admin page override - strict width control */
