@@ -4,8 +4,18 @@ The unified app lives in `shop/`. These are the hands-on steps to take it live o
 Vercel and retire the old Heroku app. Steps marked **(you)** need your accounts.
 
 ## 1. Provision Postgres **(you)**
-- Create a production Postgres DB (Neon, Vercel Postgres, Supabase, etc.).
-- Note its connection string for `DATABASE_URL`.
+- Create a production Postgres DB (Neon recommended — it's the Vercel partner).
+  Easiest path: Vercel project → **Storage → Create Database → Neon**, which
+  auto-adds the connection vars to the project.
+- Neon (and most serverless Postgres) gives you **two** connection strings:
+  - **Pooled** (`DATABASE_URL`, host contains `-pooler`) → for the running app.
+  - **Unpooled / direct** (`DATABASE_URL_UNPOOLED`, no `-pooler`) → for running
+    migrations and the data-import script below. PgBouncer (the pooler) chokes on
+    the DDL and advisory locks Prisma Migrate uses, so always migrate over the
+    direct URL.
+- **`channel_binding` gotcha:** if the deployed app throws a connection/auth
+  error, drop `&channel_binding=require` from `DATABASE_URL` in Vercel (keep
+  `sslmode=require`). This is the most common Neon-on-Vercel snag.
 
 ## 2. Create the Vercel project **(you)**
 - Import the repo; set the **Root Directory** to `shop`.
@@ -14,20 +24,23 @@ Vercel and retire the old Heroku app. Steps marked **(you)** need your accounts.
 
 ## 3. Set environment variables in Vercel **(you)**
 Use `shop/.env.example` as the checklist. Required:
-`DATABASE_URL`, `AUTH_SECRET`, `APP_URL` + `NEXT_PUBLIC_APP_URL` (your domain),
+`DATABASE_URL` (the **pooled** URL — the Neon integration sets this automatically),
+`AUTH_SECRET`, `APP_URL` + `NEXT_PUBLIC_APP_URL` (your domain),
 Square (`SQUARE_*`, `NEXT_PUBLIC_SQUARE_APPLICATION_ID`), Resend
 (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`), R2 (`R2_*`), and `CRON_SECRET`.
 
 ## 4. Apply the schema
+Use the **unpooled / direct** URL (not the `-pooler` one):
 ```bash
 cd shop
-DATABASE_URL=<prod> npx prisma migrate deploy
+DATABASE_URL=<DATABASE_URL_UNPOOLED> npx prisma migrate deploy
 ```
 
 ## 5. Migrate data from Mongo (one-off)
+Also over the **unpooled** URL:
 ```bash
 cd shop
-ATLAS_URI=<old mongo> DATABASE_URL=<prod> npm run migrate:mongo
+ATLAS_URI=<old mongo> DATABASE_URL=<DATABASE_URL_UNPOOLED> npm run migrate:mongo
 ```
 Idempotent — safe to re-run. Carries customer bcrypt hashes (passwords keep
 working), blog posts/comments, testimonials (as PUBLISHED), booking requests,
