@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 import type { PreferredTimeSlot } from "@/generated/prisma";
 
 type Params = { params: Promise<{ id: string }> };
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.RESEND_FROM_EMAIL ?? "Hard Work Mobile <onboarding@resend.dev>";
 
 const TIME_SLOT_LABELS: Record<PreferredTimeSlot, string> = {
   MORNING: "Morning (8 AM – 12 PM)",
@@ -162,25 +159,22 @@ export async function POST(_req: NextRequest, { params }: Params) {
     data: { status: "CONVERTED", customerId: customer.id },
   });
 
-  // 6. Send confirmation email (fire-and-forget)
-  resend.emails
-    .send({
-      from: FROM,
-      to: [booking.email],
-      subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
-      html: approvalEmailHtml({
-        firstName,
-        woNumber,
-        vehicleYear: booking.vehicleYear,
-        vehicleMake: booking.vehicleMake,
-        vehicleModel: booking.vehicleModel,
-        service: serviceLabel,
-        preferredDate: booking.preferredDate,
-        preferredTimeSlot: booking.preferredTimeSlot,
-        serviceAddress: booking.serviceAddress,
-      }),
-    })
-    .catch((err: unknown) => console.error("Approval email failed:", err));
+  // 6. Send confirmation email (fire-and-forget; no-ops if RESEND_API_KEY unset)
+  void sendEmail({
+    to: booking.email,
+    subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
+    html: approvalEmailHtml({
+      firstName,
+      woNumber,
+      vehicleYear: booking.vehicleYear,
+      vehicleMake: booking.vehicleMake,
+      vehicleModel: booking.vehicleModel,
+      service: serviceLabel,
+      preferredDate: booking.preferredDate,
+      preferredTimeSlot: booking.preferredTimeSlot,
+      serviceAddress: booking.serviceAddress,
+    }),
+  });
 
   return NextResponse.json({
     workOrderId: workOrder.id,

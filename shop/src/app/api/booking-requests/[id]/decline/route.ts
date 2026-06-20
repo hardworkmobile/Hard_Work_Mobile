@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
 type Params = { params: Promise<{ id: string }> };
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.RESEND_FROM_EMAIL ?? "Hard Work Mobile <onboarding@resend.dev>";
 
 function formatDate(value: Date | string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -69,14 +66,11 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const service =
     booking.service === "Other" ? booking.serviceOther ?? "service" : booking.service;
 
-  resend.emails
-    .send({
-      from: FROM,
-      to: [booking.email],
-      subject: "Regarding Your Booking Request — Hard Work Mobile",
-      html: declineEmailHtml(firstName, service, booking.preferredDate),
-    })
-    .catch((err: unknown) => console.error("Decline email failed:", err));
+  void sendEmail({
+    to: booking.email,
+    subject: "Regarding Your Booking Request — Hard Work Mobile",
+    html: declineEmailHtml(firstName, service, booking.preferredDate),
+  });
 
   return NextResponse.json({ ok: true });
 }
