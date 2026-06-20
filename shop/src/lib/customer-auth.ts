@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
 
@@ -47,4 +48,19 @@ export async function createCustomerSession(customer: SessionCustomer) {
 
 export async function clearSession() {
   (await cookies()).delete(COOKIE);
+}
+
+// Password-reset tokens: a random token is emailed to the customer; only its
+// SHA-256 hash is stored, valid for one hour.
+export function makeResetToken() {
+  const raw = crypto.randomBytes(32).toString("hex");
+  return {
+    raw,
+    hash: crypto.createHash("sha256").update(raw).digest("hex"),
+    expires: new Date(Date.now() + 60 * 60 * 1000),
+  };
+}
+
+export function hashResetToken(raw: string) {
+  return crypto.createHash("sha256").update(raw).digest("hex");
 }
