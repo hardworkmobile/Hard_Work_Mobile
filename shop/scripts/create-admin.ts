@@ -8,7 +8,7 @@
  * Re-running with the same email updates that user's name/password.
  */
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "../src/generated/prisma";
+import { PrismaClient } from "../src/generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 async function main() {

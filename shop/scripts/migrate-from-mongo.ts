@@ -16,7 +16,7 @@
  * time slots, old Bookings, old Mongo work orders.
  */
 import { MongoClient } from "mongodb";
-import { PrismaClient } from "../src/generated/prisma";
+import { PrismaClient } from "../src/generated/prisma/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const TIME_SLOT: Record<string, "MORNING" | "AFTERNOON" | "EVENING"> = {
