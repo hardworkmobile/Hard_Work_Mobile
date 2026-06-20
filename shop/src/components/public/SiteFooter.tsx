@@ -24,6 +24,7 @@ export function SiteFooter() {
             <li><Link href="/testimonials" className="hover:text-[#d4af37]">Testimonials</Link></li>
             <li><Link href="/contact" className="hover:text-[#d4af37]">Contact</Link></li>
             <li><Link href="/portal/login" className="hover:text-[#d4af37]">Customer Login</Link></li>
+            <li><Link href="/login" className="hover:text-[#d4af37]">Staff Login</Link></li>
           </ul>
         </div>
         <div>
