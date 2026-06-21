@@ -39,7 +39,7 @@ export async function createCustomerSession(customer: SessionCustomer) {
 
   (await cookies()).set(COOKIE, jwt, {
     httpOnly: true,
-    secure: false, // matches useSecureCookies:false in auth.config.ts (revisit for Vercel/HTTPS in Phase 7)
+    secure: process.env.NODE_ENV === "production", // HTTPS-only in prod; false on localhost dev
     sameSite: "lax",
     path: "/",
     maxAge: MAX_AGE,

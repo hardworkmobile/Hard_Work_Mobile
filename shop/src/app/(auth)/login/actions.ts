@@ -39,7 +39,7 @@ export async function loginAction(_: unknown, formData: FormData) {
 
     (await cookies()).set(COOKIE, jwt, {
       httpOnly: true,
-      secure:   false,   // matches useSecureCookies: false
+      secure:   process.env.NODE_ENV === "production", // HTTPS-only in prod; false on localhost dev
       sameSite: "lax",
       path:     "/",
       maxAge:   60 * 60 * 24 * 30,
