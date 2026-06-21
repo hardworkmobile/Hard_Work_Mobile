@@ -11,7 +11,6 @@ export async function forgotPasswordAction(_: unknown, formData: FormData): Prom
   if (!email) return { done: true };
 
   const customer = await prisma.customer.findUnique({ where: { email } });
-  console.log("[forgot-password] lookup for", email, "→", customer ? `found id=${customer.id}` : "NOT FOUND");
   if (customer) {
     const { raw, hash, expires } = makeResetToken();
     await prisma.customer.update({
