@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 
 const FROM = process.env.RESEND_FROM_EMAIL ?? "Hard Work Mobile <onboarding@resend.dev>";
+// Customer replies (e.g. to a booking confirmation) route to a real inbox even
+// when sending from a no-reply From address. Override with RESEND_REPLY_TO.
+const REPLY_TO = process.env.RESEND_REPLY_TO ?? "JamesFerzanden@hardworkmobile.com";
 
 export function appUrl() {
   return process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -14,7 +17,7 @@ export async function sendEmail(opts: { to: string; subject: string; html: strin
   }
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({ from: FROM, to: [opts.to], subject: opts.subject, html: opts.html });
+    await resend.emails.send({ from: FROM, to: [opts.to], replyTo: REPLY_TO, subject: opts.subject, html: opts.html });
   } catch (err) {
     console.error("[email] send failed:", err);
   }
