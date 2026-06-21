@@ -35,7 +35,7 @@ function declineEmailHtml(firstName: string, service: string, preferredDate: Dat
         <a href="tel:4845933875" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">(484) 593-3875</a>
         <p style="color:#94a3b8;font-size:13px;margin-top:32px;">
           Hard Work Mobile · Chester, Delaware &amp; Montgomery Counties, PA<br>
-          Mon–Fri 10 AM–6 PM · $80/hr · We come to you
+          Mon–Fri 8 AM–6 PM · $80/hr · We come to you
         </p>
       </div>
     </div>

@@ -31,7 +31,7 @@ export function SiteFooter() {
           <p className="text-sm font-semibold uppercase tracking-wider text-gray-400">Get in touch</p>
           <ul className="mt-3 space-y-2 text-sm">
             <li><a href={PHONE_HREF} className="font-semibold text-white hover:text-[#d4af37]">{PHONE}</a></li>
-            <li className="text-gray-400">Mon–Fri · 10 AM – 6 PM</li>
+            <li className="text-gray-400">Mon–Fri · 8 AM – 6 PM</li>
             <li className="text-gray-400">{AREA}</li>
           </ul>
         </div>

@@ -119,7 +119,7 @@ export default function ContactPage() {
             <i className="fa-solid fa-clock text-2xl text-[#d4af37]" />
             <h3 className="mt-3 font-bold text-[#1e2833]">Hours</h3>
             <p className="mt-1 text-sm text-gray-600">Monday – Friday</p>
-            <p className="text-sm text-gray-600">10:00 AM – 6:00 PM</p>
+            <p className="text-sm text-gray-600">8:00 AM – 6:00 PM</p>
           </div>
         </div>
       </section>

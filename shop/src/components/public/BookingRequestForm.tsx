@@ -279,7 +279,7 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
         <p className="text-center text-xs text-gray-400">
           Prefer to call?{" "}
           <a href="tel:4845933875" className="text-[#1e2833] font-semibold hover:underline">(484) 593-3875</a>
-          {" "}· We&apos;re available Mon–Fri, 10 AM–6 PM
+          {" "}· We&apos;re available Mon–Fri, 8 AM–6 PM
         </p>
       </div>
     </form>
