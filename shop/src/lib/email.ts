@@ -11,13 +11,16 @@ export function appUrl() {
 
 // Best-effort send: no-ops cleanly if RESEND_API_KEY isn't configured (dev).
 export async function sendEmail(opts: { to: string; subject: string; html: string }) {
-  if (!process.env.RESEND_API_KEY) {
+  const keyPresent = !!process.env.RESEND_API_KEY;
+  console.log("[email] sendEmail called — to:", opts.to, "| RESEND_API_KEY present:", keyPresent, "| from:", FROM);
+  if (!keyPresent) {
     console.warn("[email] RESEND_API_KEY not set — skipping send to", opts.to);
     return;
   }
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({ from: FROM, to: [opts.to], replyTo: REPLY_TO, subject: opts.subject, html: opts.html });
+    const result = await resend.emails.send({ from: FROM, to: [opts.to], replyTo: REPLY_TO, subject: opts.subject, html: opts.html });
+    console.log("[email] send result:", JSON.stringify(result));
   } catch (err) {
     console.error("[email] send failed:", err);
   }
