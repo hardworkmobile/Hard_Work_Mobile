@@ -86,7 +86,7 @@ export function WorkOrderForm({ defaultCustomerId, defaultVehicleId }: Props) {
       </div>
 
       {/* Schedule + Location */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">Scheduled Date & Time</label>
           <Input {...register("scheduledAt")} type="datetime-local" />
@@ -98,7 +98,7 @@ export function WorkOrderForm({ defaultCustomerId, defaultVehicleId }: Props) {
       </div>
 
       {/* Technician + Mileage */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">Technician</label>
           <Input {...register("technician")} placeholder="Your name" />
