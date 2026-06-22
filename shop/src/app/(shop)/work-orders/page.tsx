@@ -44,41 +44,44 @@ export default async function WorkOrdersPage({ searchParams }: Props) {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ClipboardList className="h-6 w-6 text-gray-500" />
-          <h1 className="text-2xl font-bold text-gray-900">Work Orders</h1>
+      <div className="mb-4 sm:mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ClipboardList className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Work Orders</h1>
           <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-sm text-gray-600">{total}</span>
         </div>
         <Link
           href="/work-orders/new"
-          className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="flex items-center gap-1.5 sm:gap-2 rounded-md bg-blue-600 px-3 sm:px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
-          New Work Order
+          <span className="hidden sm:inline">New Work Order</span>
+          <span className="sm:hidden">New</span>
         </Link>
       </div>
 
-      {/* Status tabs */}
-      <div className="mb-4 flex gap-1 border-b border-gray-200">
-        {STATUS_TABS.map(({ label, value }) => (
-          <Link
-            key={value}
-            href={`/work-orders?status=${value}`}
-            className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              statusParam === value
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
+      {/* Status tabs — scrollable on mobile */}
+      <div className="mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="flex gap-1 border-b border-gray-200 min-w-max">
+          {STATUS_TABS.map(({ label, value }) => (
+            <Link
+              key={value}
+              href={`/work-orders?status=${value}`}
+              className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                statusParam === value
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* Table */}
+      {/* Content */}
       {workOrders.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 py-16 text-center">
           <ClipboardList className="mb-3 h-10 w-10 text-gray-300" />
@@ -89,7 +92,36 @@ export default async function WorkOrdersPage({ searchParams }: Props) {
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+          {/* Mobile cards */}
+          <div className="space-y-3 sm:hidden">
+            {workOrders.map((wo) => (
+              <Link
+                key={wo.id}
+                href={`/work-orders/${wo.id}`}
+                className="block rounded-lg border border-gray-200 p-4 hover:bg-gray-50 active:bg-gray-100"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-sm text-blue-600">{wo.number}</span>
+                  <StatusBadge status={wo.status} />
+                </div>
+                <p className="font-semibold text-gray-900">{wo.customer.firstName} {wo.customer.lastName}</p>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  {wo.vehicle.year} {wo.vehicle.make} {wo.vehicle.model}
+                </p>
+                {wo.description && (
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{wo.description}</p>
+                )}
+                {wo.scheduledAt && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    {new Date(wo.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                  </p>
+                )}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-hidden rounded-lg border border-gray-200 shadow-sm">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                 <tr>
@@ -132,10 +164,10 @@ export default async function WorkOrdersPage({ searchParams }: Props) {
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-              <span>Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}</span>
+              <span>{(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}</span>
               <div className="flex gap-2">
                 {page > 1 && (
-                  <Link href={`/work-orders?status=${statusParam}&page=${page - 1}`} className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Previous</Link>
+                  <Link href={`/work-orders?status=${statusParam}&page=${page - 1}`} className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Prev</Link>
                 )}
                 {page < totalPages && (
                   <Link href={`/work-orders?status=${statusParam}&page=${page + 1}`} className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Next</Link>

@@ -13,8 +13,8 @@ export default async function UsersPage() {
   });
 
   return (
-    <div className="p-8 max-w-3xl">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">Team</h1>
+    <div className="p-4 sm:p-8 max-w-3xl">
+      <h1 className="mb-4 sm:mb-6 text-xl sm:text-2xl font-bold text-gray-900">Team</h1>
       <UsersManager initialUsers={users} />
     </div>
   );

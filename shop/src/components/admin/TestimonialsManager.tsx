@@ -67,16 +67,16 @@ export function TestimonialsManager({ initial }: { initial: Row[] }) {
   }
 
   return (
-    <div className="max-w-4xl p-8">
-      <div className="mb-6 flex items-center gap-3">
-        <MessageSquareQuote className="h-6 w-6 text-blue-600" />
-        <h1 className="text-2xl font-bold text-gray-900">Testimonials</h1>
+    <div className="max-w-4xl p-4 sm:p-8">
+      <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+        <MessageSquareQuote className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Testimonials</h1>
         {pendingCount > 0 && (
           <span className="rounded-full bg-yellow-500 px-2.5 py-0.5 text-xs font-bold text-white">{pendingCount} pending</span>
         )}
       </div>
 
-      <div className="mb-6 flex w-fit gap-1 rounded-lg bg-gray-100 p-1">
+      <div className="mb-4 sm:mb-6 flex w-fit gap-1 rounded-lg bg-gray-100 p-1 overflow-x-auto">
         {TABS.map((t) => (
           <button
             key={t.value}
@@ -93,7 +93,7 @@ export function TestimonialsManager({ initial }: { initial: Row[] }) {
       ) : (
         <div className="space-y-4">
           {shown.map((r) => (
-            <div key={r.id} className={cn("rounded-xl border border-gray-200 p-5", busy === r.id && "opacity-50")}>
+            <div key={r.id} className={cn("rounded-xl border border-gray-200 p-4 sm:p-5", busy === r.id && "opacity-50")}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-0.5">

@@ -117,12 +117,12 @@ export function BookingRequestsClient() {
   const newCount = requests.filter((r) => r.status === "NEW").length;
 
   return (
-    <div className="p-8 max-w-7xl">
+    <div className="p-4 sm:p-8 max-w-7xl">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Inbox className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Booking Requests</h1>
+      <div className="mb-4 sm:mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Inbox className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Bookings</h1>
           {newCount > 0 && (
             <span className="rounded-full bg-blue-600 px-2.5 py-0.5 text-xs font-bold text-white">
               {newCount} new
@@ -135,16 +135,15 @@ export function BookingRequestsClient() {
           className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
         >
           <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </button>
       </div>
 
       {/* Success banner after approval */}
       {lastResult?.workOrderNumber && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
           <p className="font-medium text-emerald-800">
-            Booking approved — Work Order{" "}
-            <strong>{lastResult.workOrderNumber}</strong> created and confirmation email sent.
+            Approved — WO <strong>{lastResult.workOrderNumber}</strong> created.
           </p>
           <div className="flex items-center gap-3">
             <Link
@@ -169,13 +168,13 @@ export function BookingRequestsClient() {
       )}
 
       {/* Filter tabs */}
-      <div className="mb-6 flex gap-1 rounded-lg bg-gray-100 p-1 w-fit">
+      <div className="mb-4 sm:mb-6 flex gap-1 rounded-lg bg-gray-100 p-1 w-fit">
         {TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setStatusFilter(tab.value)}
             className={cn(
-              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              "rounded-md px-3 sm:px-4 py-1.5 text-sm font-medium transition-colors",
               statusFilter === tab.value
                 ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
@@ -190,7 +189,7 @@ export function BookingRequestsClient() {
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-gray-500 py-16">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-          Loading…
+          Loading...
         </div>
       ) : requests.length === 0 ? (
         <div className="py-20 text-center text-gray-400">
@@ -201,152 +200,248 @@ export function BookingRequestsClient() {
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200 text-left">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-gray-600">Customer</th>
-                <th className="px-4 py-3 font-semibold text-gray-600">Vehicle</th>
-                <th className="px-4 py-3 font-semibold text-gray-600">Service &amp; Location</th>
-                <th className="px-4 py-3 font-semibold text-gray-600">Preferred</th>
-                <th className="px-4 py-3 font-semibold text-gray-600">Status</th>
-                <th className="px-4 py-3 text-right font-semibold text-gray-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {requests.map((r) => {
-                const isPending = pending?.id === r.id;
-                const isLoading = actionLoading === r.id;
-                const serviceLabel =
-                  r.service === "Other" ? r.serviceOther || "Other" : r.service;
+        <>
+          {/* Mobile cards */}
+          <div className="space-y-3 sm:hidden">
+            {requests.map((r) => {
+              const isPending = pending?.id === r.id;
+              const isLoading = actionLoading === r.id;
+              const serviceLabel = r.service === "Other" ? r.serviceOther || "Other" : r.service;
 
-                return (
-                  <tr key={r.id} className={cn("transition-colors", isLoading ? "opacity-60" : "hover:bg-gray-50")}>
-                    {/* Customer */}
-                    <td className="px-4 py-3 align-top">
+              return (
+                <div
+                  key={r.id}
+                  className={cn(
+                    "rounded-lg border border-gray-200 p-4",
+                    isLoading && "opacity-60"
+                  )}
+                >
+                  {/* Header: name + status */}
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
                       <p className="font-semibold text-gray-900">{r.name}</p>
-                      <a
-                        href={`tel:${r.phone}`}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 mt-0.5"
-                      >
-                        <Phone className="h-3 w-3 shrink-0" />
-                        {r.phone}
-                      </a>
-                      <a
-                        href={`mailto:${r.email}`}
-                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600"
-                      >
-                        <Mail className="h-3 w-3 shrink-0" />
-                        {r.email}
-                      </a>
-                      <p className="text-xs text-gray-400 mt-1">{formatReceivedDate(r.createdAt)}</p>
-                    </td>
+                      <p className="text-xs text-gray-400 mt-0.5">{formatReceivedDate(r.createdAt)}</p>
+                    </div>
+                    <span className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-medium capitalize shrink-0",
+                      STATUS_STYLES[r.status] ?? "bg-gray-100 text-gray-600"
+                    )}>
+                      {r.status.toLowerCase()}
+                    </span>
+                  </div>
 
-                    {/* Vehicle */}
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center gap-1.5 text-gray-700">
-                        <Car className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        <span className="font-medium">{r.vehicleYear} {r.vehicleMake}</span>
-                      </div>
-                      <p className="text-xs text-gray-500 ml-5">{r.vehicleModel}</p>
-                    </td>
+                  {/* Contact links */}
+                  <div className="flex gap-3 mb-3">
+                    <a href={`tel:${r.phone}`} className="flex items-center gap-1 text-sm text-blue-600">
+                      <Phone className="h-3.5 w-3.5" />{r.phone}
+                    </a>
+                    <a href={`mailto:${r.email}`} className="flex items-center gap-1 text-sm text-blue-600 truncate">
+                      <Mail className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{r.email}</span>
+                    </a>
+                  </div>
 
-                    {/* Service + location */}
-                    <td className="px-4 py-3 align-top max-w-[220px]">
-                      <div className="flex items-start gap-1.5 text-gray-700">
-                        <Wrench className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
-                        <span className="break-words">{serviceLabel}</span>
-                      </div>
-                      <div className="flex items-start gap-1 text-xs text-gray-500 mt-1">
-                        <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
-                        <span className="break-words">{r.serviceAddress}</span>
-                      </div>
-                    </td>
+                  {/* Details */}
+                  <div className="space-y-1.5 text-sm text-gray-700">
+                    <div className="flex items-center gap-1.5">
+                      <Car className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      {r.vehicleYear} {r.vehicleMake} {r.vehicleModel}
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <Wrench className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                      <span>{serviceLabel}</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                      <span>{r.serviceAddress}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      {formatShortDate(r.preferredDate)}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      {TIME_SLOT_LABELS[r.preferredTimeSlot] ?? r.preferredTimeSlot}
+                    </div>
+                  </div>
 
-                    {/* Preferred date/time */}
-                    <td className="px-4 py-3 align-top whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 text-gray-700">
-                        <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        <span>{formatShortDate(r.preferredDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                        <Clock className="h-3 w-3 shrink-0" />
-                        {TIME_SLOT_LABELS[r.preferredTimeSlot] ?? r.preferredTimeSlot}
-                      </div>
-                    </td>
+                  {/* Actions */}
+                  {r.status === "NEW" && !isLoading && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      {isPending ? (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500">
+                            {pending.type === "approve"
+                              ? "Create work order & notify customer?"
+                              : "Decline and notify customer?"}
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAction(r.id, pending.type)}
+                              className={cn(
+                                "flex-1 rounded-md px-3 py-2 text-sm font-semibold text-white",
+                                pending.type === "approve"
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-red-600 hover:bg-red-700"
+                              )}
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setPending(null)}
+                              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setPending({ id: r.id, type: "approve" })}
+                            className="flex-1 flex items-center justify-center gap-1 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-100"
+                          >
+                            <Check className="h-4 w-4" /> Approve
+                          </button>
+                          <button
+                            onClick={() => setPending({ id: r.id, type: "decline" })}
+                            className="flex-1 flex items-center justify-center gap-1 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+                          >
+                            <X className="h-4 w-4" /> Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-                    {/* Status badge */}
-                    <td className="px-4 py-3 align-top">
-                      <span
-                        className={cn(
+          {/* Desktop table */}
+          <div className="hidden sm:block rounded-xl border border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200 text-left">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-gray-600">Customer</th>
+                  <th className="px-4 py-3 font-semibold text-gray-600">Vehicle</th>
+                  <th className="px-4 py-3 font-semibold text-gray-600">Service &amp; Location</th>
+                  <th className="px-4 py-3 font-semibold text-gray-600">Preferred</th>
+                  <th className="px-4 py-3 font-semibold text-gray-600">Status</th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {requests.map((r) => {
+                  const isPending = pending?.id === r.id;
+                  const isLoading = actionLoading === r.id;
+                  const serviceLabel =
+                    r.service === "Other" ? r.serviceOther || "Other" : r.service;
+
+                  return (
+                    <tr key={r.id} className={cn("transition-colors", isLoading ? "opacity-60" : "hover:bg-gray-50")}>
+                      <td className="px-4 py-3 align-top">
+                        <p className="font-semibold text-gray-900">{r.name}</p>
+                        <a href={`tel:${r.phone}`} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 mt-0.5">
+                          <Phone className="h-3 w-3 shrink-0" />{r.phone}
+                        </a>
+                        <a href={`mailto:${r.email}`} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600">
+                          <Mail className="h-3 w-3 shrink-0" />{r.email}
+                        </a>
+                        <p className="text-xs text-gray-400 mt-1">{formatReceivedDate(r.createdAt)}</p>
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="flex items-center gap-1.5 text-gray-700">
+                          <Car className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          <span className="font-medium">{r.vehicleYear} {r.vehicleMake}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 ml-5">{r.vehicleModel}</p>
+                      </td>
+                      <td className="px-4 py-3 align-top max-w-[220px]">
+                        <div className="flex items-start gap-1.5 text-gray-700">
+                          <Wrench className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                          <span className="break-words">{serviceLabel}</span>
+                        </div>
+                        <div className="flex items-start gap-1 text-xs text-gray-500 mt-1">
+                          <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
+                          <span className="break-words">{r.serviceAddress}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-top whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-gray-700">
+                          <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          <span>{formatShortDate(r.preferredDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                          <Clock className="h-3 w-3 shrink-0" />
+                          {TIME_SLOT_LABELS[r.preferredTimeSlot] ?? r.preferredTimeSlot}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <span className={cn(
                           "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
                           STATUS_STYLES[r.status] ?? "bg-gray-100 text-gray-600"
-                        )}
-                      >
-                        {r.status.toLowerCase()}
-                      </span>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-4 py-3 align-top text-right">
-                      {isLoading ? (
-                        <div className="flex justify-end pt-1">
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-                        </div>
-                      ) : r.status === "NEW" ? (
-                        isPending ? (
-                          <div className="flex flex-col items-end gap-1.5">
-                            <p className="text-xs text-gray-500">
-                              {pending.type === "approve"
-                                ? "Create work order & notify customer?"
-                                : "Decline and notify customer?"}
-                            </p>
-                            <div className="flex items-center gap-2">
+                        )}>
+                          {r.status.toLowerCase()}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 align-top text-right">
+                        {isLoading ? (
+                          <div className="flex justify-end pt-1">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+                          </div>
+                        ) : r.status === "NEW" ? (
+                          isPending ? (
+                            <div className="flex flex-col items-end gap-1.5">
+                              <p className="text-xs text-gray-500">
+                                {pending.type === "approve"
+                                  ? "Create work order & notify customer?"
+                                  : "Decline and notify customer?"}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleAction(r.id, pending.type)}
+                                  className={cn(
+                                    "rounded-md px-3 py-1.5 text-xs font-semibold text-white transition-colors",
+                                    pending.type === "approve"
+                                      ? "bg-green-600 hover:bg-green-700"
+                                      : "bg-red-600 hover:bg-red-700"
+                                  )}
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => setPending(null)}
+                                  className="rounded-md px-2 py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-2">
                               <button
-                                onClick={() => handleAction(r.id, pending.type)}
-                                className={cn(
-                                  "rounded-md px-3 py-1.5 text-xs font-semibold text-white transition-colors",
-                                  pending.type === "approve"
-                                    ? "bg-green-600 hover:bg-green-700"
-                                    : "bg-red-600 hover:bg-red-700"
-                                )}
+                                onClick={() => setPending({ id: r.id, type: "approve" })}
+                                className="flex items-center gap-1 rounded-md bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors"
                               >
-                                Confirm
+                                <Check className="h-3.5 w-3.5" /> Approve
                               </button>
                               <button
-                                onClick={() => setPending(null)}
-                                className="rounded-md px-2 py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                                onClick={() => setPending({ id: r.id, type: "decline" })}
+                                className="flex items-center gap-1 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
                               >
-                                Cancel
+                                <X className="h-3.5 w-3.5" /> Decline
                               </button>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => setPending({ id: r.id, type: "approve" })}
-                              className="flex items-center gap-1 rounded-md bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors"
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => setPending({ id: r.id, type: "decline" })}
-                              className="flex items-center gap-1 rounded-md bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                              Decline
-                            </button>
-                          </div>
-                        )
-                      ) : null}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                          )
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

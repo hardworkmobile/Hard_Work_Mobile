@@ -12,7 +12,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex h-full">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-white">{children}</main>
+      <main className="flex-1 overflow-y-auto bg-white pt-14 md:pt-0">{children}</main>
     </div>
   );
 }

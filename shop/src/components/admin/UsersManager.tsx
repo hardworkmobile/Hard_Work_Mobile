@@ -61,8 +61,39 @@ export function UsersManager({ initialUsers }: { initialUsers: User[] }) {
 
   return (
     <div className="space-y-6">
-      {/* User list */}
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
+      {/* Mobile cards */}
+      <div className="space-y-3 sm:hidden">
+        {users.map((u) => (
+          <div key={u.id} className={`rounded-lg border border-gray-200 p-4 ${!u.active ? "opacity-50" : ""}`}>
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <p className="font-semibold text-gray-900">{u.name}</p>
+                <p className="text-sm text-gray-600">{u.email}</p>
+              </div>
+              <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium shrink-0
+                ${u.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"}`}>
+                {u.role === "ADMIN"
+                  ? <><ShieldCheck className="h-3 w-3" />Admin</>
+                  : <><Wrench className="h-3 w-3" />Tech</>}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className={`text-xs font-medium ${u.active ? "text-green-600" : "text-gray-400"}`}>
+                {u.active ? "Active" : "Inactive"}
+              </span>
+              <button
+                onClick={() => toggleActive(u)}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                {u.active ? "Deactivate" : "Reactivate"}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block rounded-lg border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wide">
             <tr>
@@ -107,25 +138,25 @@ export function UsersManager({ initialUsers }: { initialUsers: User[] }) {
 
       {/* Add user */}
       {showForm ? (
-        <form onSubmit={handleAdd} className="rounded-lg border border-gray-200 p-5 space-y-4">
+        <form onSubmit={handleAdd} className="rounded-lg border border-gray-200 p-4 sm:p-5 space-y-4">
           <h2 className="font-semibold text-gray-800">Add Team Member</h2>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Name</label>
-              <input name="name" required className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm" />
+              <input name="name" required className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Email</label>
-              <input name="email" type="email" required className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm" />
+              <input name="email" type="email" required className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-gray-600">Password (min 8 chars)</label>
-              <input name="password" type="password" minLength={8} required className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm" />
+              <label className="mb-1 block text-xs font-medium text-gray-600">Password (min 8)</label>
+              <input name="password" type="password" minLength={8} required className="w-full rounded border border-gray-300 px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">Role</label>
-              <select name="role" className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm">
+              <select name="role" className="w-full rounded border border-gray-300 px-3 py-2 text-sm">
                 <option value="TECHNICIAN">Technician</option>
                 <option value="ADMIN">Admin</option>
               </select>
@@ -137,7 +168,7 @@ export function UsersManager({ initialUsers }: { initialUsers: User[] }) {
           <div className="flex gap-2">
             <button type="submit" disabled={loading}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
-              {loading ? "Adding…" : "Add User"}
+              {loading ? "Adding..." : "Add User"}
             </button>
             <button type="button" onClick={() => { setShowForm(false); setError(""); }}
               className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">

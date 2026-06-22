@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { FileText, Plus } from "lucide-react";
+import { FileText } from "lucide-react";
 import { InvoiceStatus } from "@/generated/prisma";
 import { Badge } from "@/components/ui/badge";
 
@@ -56,30 +56,32 @@ export default async function InvoicesPage({ searchParams }: Props) {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FileText className="h-6 w-6 text-gray-500" />
-          <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
+    <div className="p-4 sm:p-8">
+      <div className="mb-4 sm:mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Invoices</h1>
           <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-sm text-gray-600">{total}</span>
         </div>
       </div>
 
-      {/* Status tabs */}
-      <div className="mb-4 flex gap-1 border-b border-gray-200">
-        {STATUS_TABS.map(({ label, value }) => (
-          <Link
-            key={value}
-            href={`/invoices?status=${value}`}
-            className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              statusParam === value
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-800"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
+      {/* Status tabs — scrollable on mobile */}
+      <div className="mb-4 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="flex gap-1 border-b border-gray-200 min-w-max">
+          {STATUS_TABS.map(({ label, value }) => (
+            <Link
+              key={value}
+              href={`/invoices?status=${value}`}
+              className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                statusParam === value
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {invoices.length === 0 ? (
@@ -90,7 +92,38 @@ export default async function InvoicesPage({ searchParams }: Props) {
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+          {/* Mobile cards */}
+          <div className="space-y-3 sm:hidden">
+            {invoices.map((inv) => (
+              <Link
+                key={inv.id}
+                href={`/invoices/${inv.id}`}
+                className="block rounded-lg border border-gray-200 p-4 hover:bg-gray-50 active:bg-gray-100"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-sm text-blue-600">{inv.number}</span>
+                  <Badge variant={STATUS_VARIANT[inv.status]}>{inv.status}</Badge>
+                </div>
+                <p className="font-semibold text-gray-900">
+                  {inv.customer.firstName} {inv.customer.lastName}
+                </p>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  {inv.workOrder.vehicle.year} {inv.workOrder.vehicle.make} {inv.workOrder.vehicle.model}
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-lg font-bold text-gray-900">{fmt(inv.total)}</span>
+                  {inv.dueDate && (
+                    <span className="text-xs text-gray-400">
+                      Due {new Date(inv.dueDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-hidden rounded-lg border border-gray-200 shadow-sm">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                 <tr>
@@ -137,9 +170,9 @@ export default async function InvoicesPage({ searchParams }: Props) {
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-              <span>Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}</span>
+              <span>{(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}</span>
               <div className="flex gap-2">
-                {page > 1 && <Link href={`/invoices?status=${statusParam}&page=${page - 1}`} className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Previous</Link>}
+                {page > 1 && <Link href={`/invoices?status=${statusParam}&page=${page - 1}`} className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Prev</Link>}
                 {page < totalPages && <Link href={`/invoices?status=${statusParam}&page=${page + 1}`} className="rounded-md border border-gray-300 px-3 py-1 hover:bg-gray-50">Next</Link>}
               </div>
             </div>
