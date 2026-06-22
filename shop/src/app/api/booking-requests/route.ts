@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { sendEmail, brandedEmail } from "@/lib/email";
 import type { BookingRequestStatus, PreferredTimeSlot } from "@/generated/prisma";
 
 const STATUSES = ["NEW", "CONTACTED", "SCHEDULED", "COMPLETED", "CANCELLED", "CONVERTED", "DECLINED"] as const;
@@ -84,6 +85,54 @@ export async function POST(req: NextRequest) {
       customerId: customer?.id,
     },
     select: { id: true },
+  });
+
+  const serviceName = d.service === "Other" ? d.serviceOther ?? "Other" : d.service;
+  const dateStr = d.preferredDate.toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC",
+  });
+  const timeSlotLabel = { morning: "Morning (8 AM – 12 PM)", afternoon: "Afternoon (12 PM – 5 PM)", evening: "Evening (5 PM – 7 PM)" }[d.preferredTimeSlot] ?? d.preferredTimeSlot;
+  const firstName = d.name.split(" ")[0] ?? d.name;
+
+  // Confirmation to the customer
+  void sendEmail({
+    to: d.email,
+    subject: "We Got Your Request — Hard Work Mobile",
+    html: brandedEmail(
+      `Thanks, ${firstName}!`,
+      `<p style="color:#475569;">We received your booking request and will review it shortly. Here's a summary:</p>
+       <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+         <tr><td style="padding:8px 0;color:#94a3b8;width:120px;">Service</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${serviceName}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Vehicle</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${d.vehicleYear} ${d.vehicleMake} ${d.vehicleModel}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Date</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${dateStr}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${timeSlotLabel}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Location</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${d.serviceAddress}</td></tr>
+       </table>
+       <p style="color:#475569;">We'll usually call or text within a few hours to confirm your appointment. If you need to reach us sooner:</p>
+       <a href="tel:4845933875" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">(484) 593-3875</a>`
+    ),
+  });
+
+  // Notification to the shop owner
+  const ownerEmail = process.env.RESEND_REPLY_TO ?? "JamesFerzanden@hardworkmobile.com";
+  void sendEmail({
+    to: ownerEmail,
+    subject: `New Booking Request — ${firstName} · ${serviceName}`,
+    html: brandedEmail(
+      "New Booking Request",
+      `<p style="color:#475569;">A new request just came in from the website:</p>
+       <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+         <tr><td style="padding:8px 0;color:#94a3b8;width:120px;">Name</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${d.name}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Phone</td><td style="padding:8px 0;color:#1e2833;font-weight:600;"><a href="tel:${d.phone}" style="color:#1e2833;">${d.phone}</a></td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Email</td><td style="padding:8px 0;color:#1e2833;font-weight:600;"><a href="mailto:${d.email}" style="color:#1e2833;">${d.email}</a></td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Service</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${serviceName}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Vehicle</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${d.vehicleYear} ${d.vehicleMake} ${d.vehicleModel}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Date</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${dateStr}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${timeSlotLabel}</td></tr>
+         <tr><td style="padding:8px 0;color:#94a3b8;">Location</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${d.serviceAddress}</td></tr>
+       </table>
+       <a href="${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/booking-requests" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">View in Admin →</a>`
+    ),
   });
 
   return NextResponse.json({ id: created.id }, { status: 201 });
