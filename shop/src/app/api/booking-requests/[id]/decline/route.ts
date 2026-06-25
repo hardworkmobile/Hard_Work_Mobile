@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -65,6 +66,11 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const firstName = booking.name.split(" ")[0] ?? booking.name;
   const service =
     booking.service === "Other" ? booking.serviceOther ?? "service" : booking.service;
+
+  void sendSms({
+    to: booking.phone,
+    message: `Hi ${firstName}, thanks for reaching out to Hard Work Mobile. Unfortunately, we can't accommodate your ${service} request on ${formatDate(booking.preferredDate)}. We'd love to find another time — give us a call at (484) 593-3875.`,
+  });
 
   void sendEmail({
     to: booking.email,

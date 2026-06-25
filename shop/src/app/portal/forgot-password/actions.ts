@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { makeResetToken } from "@/lib/customer-auth";
 import { sendEmail, brandedEmail, appUrl } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 
 // Always returns success (no email enumeration). Sends a reset link if the
 // account exists and has portal access (or can be granted it).
@@ -18,6 +19,12 @@ export async function forgotPasswordAction(_: unknown, formData: FormData): Prom
       data: { passwordResetToken: hash, passwordResetExpires: expires },
     });
     const link = `${appUrl()}/portal/reset-password/${raw}`;
+    if (customer.phone) {
+      void sendSms({
+        to: customer.phone,
+        message: `Hard Work Mobile: Use this link to reset your password (valid 1 hour): ${link}`,
+      });
+    }
     await sendEmail({
       to: email,
       subject: "Reset your Hard Work Mobile password",

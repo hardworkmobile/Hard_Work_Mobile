@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { sendSms } from "@/lib/sms";
 import type { PreferredTimeSlot } from "@/generated/prisma";
 
 type Params = { params: Promise<{ id: string }> };
@@ -159,7 +160,12 @@ export async function POST(_req: NextRequest, { params }: Params) {
     data: { status: "CONVERTED", customerId: customer.id },
   });
 
-  // 6. Send confirmation email (fire-and-forget; no-ops if RESEND_API_KEY unset)
+  // 6. Send confirmation SMS + email (fire-and-forget)
+  void sendSms({
+    to: booking.phone,
+    message: `Hi ${firstName}, your booking with Hard Work Mobile is confirmed! Work Order ${woNumber} for ${serviceLabel} on ${formatDate(booking.preferredDate)}. We'll call 30 min before arrival. Questions? (484) 593-3875`,
+  });
+
   void sendEmail({
     to: booking.email,
     subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
