@@ -98,12 +98,12 @@ export async function POST(req: NextRequest) {
   // SMS confirmation to the customer
   void sendSms({
     to: d.phone,
-    message: `Hi ${firstName}, Hard Work Mobile received your booking request for ${serviceName} on ${dateStr}. We'll call or text within a few hours to confirm. Questions? (484) 593-3875`,
+    message: `Hi ${firstName}, Hard Work Mobile received your booking request for ${serviceName} on ${dateStr}. We'll call or text within a few hours to confirm. Questions? (484) 593-3875\n\nReply STOP to opt out`,
   });
 
   // SMS notification to the shop owner
   void sendSms({
-    to: process.env.QUO_OWNER_PHONE ?? "",
+    to: process.env.OWNER_PHONE ?? "",
     message: `New booking: ${d.name} — ${serviceName}, ${d.vehicleYear} ${d.vehicleMake} ${d.vehicleModel}, ${dateStr} ${timeSlotLabel}. Phone: ${d.phone}`,
   });
 
