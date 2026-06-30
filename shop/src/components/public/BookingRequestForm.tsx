@@ -61,6 +61,7 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
     serviceAddress: "",
   };
   const [form, setForm] = useState(initial);
+  const [smsOptIn, setSmsOptIn] = useState(false);
   const [models, setModels] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [status, setStatus] = useState({ submitted: false, error: false, message: "" });
@@ -92,7 +93,7 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
       const res = await fetch("/api/booking-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, source }),
+        body: JSON.stringify({ ...form, source, smsOptIn }),
       });
       if (!res.ok) throw new Error("request failed");
       setStatus({ submitted: true, error: false, message: "" });
@@ -256,6 +257,28 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
             <input id="br-address" type="text" name="serviceAddress" value={form.serviceAddress} onChange={handleChange} placeholder="123 Main St, West Chester, PA 19380" required className={inputCls} />
             <p className="text-xs text-gray-400 mt-1.5">Home, workplace, or wherever your vehicle will be parked.</p>
           </div>
+        </section>
+
+        {/* SMS opt-in consent */}
+        <section className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={smsOptIn}
+              onChange={(e) => setSmsOptIn(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-[#d4af37] focus:ring-[#d4af37] shrink-0"
+            />
+            <span className="text-sm text-gray-700">
+              Yes, I agree to receive booking confirmations, appointment reminders, and service updates via text message from Hard Work Mobile. Approximate frequency: 1–5 messages per booking.
+            </span>
+          </label>
+          <p className="mt-3 text-xs text-gray-500 leading-relaxed">
+            Message and data rates may apply. Reply STOP to cancel or HELP for help at any time.
+            Consent is not a condition of purchase.
+            {" "}<a href="/terms" className="underline hover:text-[#1e2833]">Terms of Service</a>
+            {" · "}
+            <a href="/privacy" className="underline hover:text-[#1e2833]">Privacy Policy</a>
+          </p>
         </section>
 
         {status.submitted && status.error && (

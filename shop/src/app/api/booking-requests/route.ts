@@ -47,6 +47,7 @@ const createSchema = z.object({
   preferredTimeSlot: z.string().transform((v) => v.toLowerCase()).pipe(z.enum(["morning", "afternoon", "evening"])),
   serviceAddress: z.string().trim().min(1),
   source: z.string().trim().optional(),
+  smsOptIn: z.boolean().default(false),
 });
 
 export async function POST(req: NextRequest) {
@@ -83,6 +84,7 @@ export async function POST(req: NextRequest) {
       preferredTimeSlot: TIME_SLOT_MAP[d.preferredTimeSlot],
       serviceAddress: d.serviceAddress,
       source: d.source ?? "contact",
+      smsOptIn: d.smsOptIn,
       customerId: customer?.id,
     },
     select: { id: true },
@@ -95,11 +97,13 @@ export async function POST(req: NextRequest) {
   const timeSlotLabel = { morning: "Morning (8 AM – 12 PM)", afternoon: "Afternoon (12 PM – 5 PM)", evening: "Evening (5 PM – 7 PM)" }[d.preferredTimeSlot] ?? d.preferredTimeSlot;
   const firstName = d.name.split(" ")[0] ?? d.name;
 
-  // SMS confirmation to the customer
-  void sendSms({
-    to: d.phone,
-    message: `Hi ${firstName}, Hard Work Mobile received your booking request for ${serviceName} on ${dateStr}. We'll call or text within a few hours to confirm. Questions? (484) 593-3875\n\nReply STOP to opt out`,
-  });
+  // SMS confirmation to the customer (only if they opted in)
+  if (d.smsOptIn) {
+    void sendSms({
+      to: d.phone,
+      message: `Hi ${firstName}, Hard Work Mobile received your booking request for ${serviceName} on ${dateStr}. We'll call or text within a few hours to confirm. Questions? (484) 593-3875\n\nReply STOP to opt out`,
+    });
+  }
 
   // SMS notification to the shop owner
   void sendSms({

@@ -161,10 +161,12 @@ export async function POST(_req: NextRequest, { params }: Params) {
   });
 
   // 6. Send confirmation SMS + email (fire-and-forget)
-  void sendSms({
-    to: booking.phone,
-    message: `Hi ${firstName}, your booking with Hard Work Mobile is confirmed! Work Order ${woNumber} for ${serviceLabel} on ${formatDate(booking.preferredDate)}. We'll call 30 min before arrival. Questions? (484) 593-3875`,
-  });
+  if (booking.smsOptIn) {
+    void sendSms({
+      to: booking.phone,
+      message: `Hi ${firstName}, your booking with Hard Work Mobile is confirmed! Work Order ${woNumber} for ${serviceLabel} on ${formatDate(booking.preferredDate)}. We'll call 30 min before arrival. Questions? (484) 593-3875`,
+    });
+  }
 
   void sendEmail({
     to: booking.email,

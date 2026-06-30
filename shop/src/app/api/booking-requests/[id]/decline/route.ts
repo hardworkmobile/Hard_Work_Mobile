@@ -67,10 +67,12 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const service =
     booking.service === "Other" ? booking.serviceOther ?? "service" : booking.service;
 
-  void sendSms({
-    to: booking.phone,
-    message: `Hi ${firstName}, thanks for reaching out to Hard Work Mobile. Unfortunately, we can't accommodate your ${service} request on ${formatDate(booking.preferredDate)}. We'd love to find another time — give us a call at (484) 593-3875.`,
-  });
+  if (booking.smsOptIn) {
+    void sendSms({
+      to: booking.phone,
+      message: `Hi ${firstName}, thanks for reaching out to Hard Work Mobile. Unfortunately, we can't accommodate your ${service} request on ${formatDate(booking.preferredDate)}. We'd love to find another time — give us a call at (484) 593-3875.`,
+    });
+  }
 
   void sendEmail({
     to: booking.email,

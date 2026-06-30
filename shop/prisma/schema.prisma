@@ -299,6 +299,7 @@ model BookingRequest {
   preferredTimeSlot PreferredTimeSlot
   serviceAddress    String
   source            String              @default("contact") // contact / landing-brakes / etc.
+  smsOptIn          Boolean             @default(false)
   status            BookingRequestStatus @default(NEW)
   customerId        String?             // linked once a portal customer is matched/created
   createdAt         DateTime            @default(now())
