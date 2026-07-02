@@ -37,7 +37,11 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-gray-500">
-        © {year} Hard Work Mobile. All rights reserved.
+        <p>© {year} Hard Work Mobile. All rights reserved.</p>
+        <p className="mt-2 flex justify-center gap-4">
+          <Link href="/privacy" className="hover:text-[#d4af37]">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-[#d4af37]">Terms of Service</Link>
+        </p>
       </div>
     </footer>
   );
