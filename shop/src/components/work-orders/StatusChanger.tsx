@@ -68,7 +68,21 @@ export function StatusChanger({
     setLoading(false);
   }
 
+  async function markPaidCash() {
+    if (!confirm("Mark this work order as paid (cash)?")) return;
+    setLoading(true);
+    await fetch(`/api/work-orders/${workOrderId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "PAID" }),
+    });
+    router.refresh();
+    setLoading(false);
+  }
+
   if (currentStatus === "PAID" || currentStatus === "CANCELLED") return null;
+
+  const showCashButton = currentStatus === "COMPLETED" || currentStatus === "INVOICED";
 
   return (
     <div className="flex items-center gap-2">
@@ -80,6 +94,11 @@ export function StatusChanger({
       {nextStatus && label && currentStatus !== "COMPLETED" && (
         <Button onClick={advance} disabled={loading}>
           {loading ? "Updating…" : label}
+        </Button>
+      )}
+      {showCashButton && (
+        <Button variant="secondary" onClick={markPaidCash} disabled={loading}>
+          {loading ? "Updating…" : "Mark Paid (Cash)"}
         </Button>
       )}
       {!["INVOICED", "COMPLETED"].includes(currentStatus) && (
