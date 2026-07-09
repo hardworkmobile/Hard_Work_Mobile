@@ -15,15 +15,19 @@ export function TerminalButton({ invoiceId }: Props) {
     if (!confirm("Send payment request to your Square Terminal?")) return;
     setState("sending");
 
-    const res  = await fetch(`/api/invoices/${invoiceId}/terminal-checkout`, { method: "POST" });
-    const data = await res.json();
+    const res = await fetch(`/api/invoices/${invoiceId}/terminal-checkout`, { method: "POST" });
 
     if (!res.ok) {
-      const detail = data.detail ? `\n\n${JSON.stringify(data.detail, null, 2)}` : "";
-      const msg = (data.error ?? "Failed to reach Terminal") + detail;
+      let msg: string;
+      try {
+        const data = await res.json();
+        const detail = data.detail ? `\n${JSON.stringify(data.detail, null, 2)}` : "";
+        msg = (data.error ?? `HTTP ${res.status}`) + detail;
+      } catch {
+        msg = `HTTP ${res.status} — ${res.statusText}`;
+      }
       setErrorMsg(msg);
       setState("error");
-      alert(msg);
       return;
     }
 
@@ -41,13 +45,17 @@ export function TerminalButton({ invoiceId }: Props) {
 
   if (state === "error") {
     return (
-      <button
-        onClick={() => setState("idle")}
-        className="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
-        title={errorMsg}
-      >
-        Terminal error — retry
-      </button>
+      <div className="max-w-md">
+        <button
+          onClick={() => setState("idle")}
+          className="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+        >
+          Terminal error — retry
+        </button>
+        <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+          {errorMsg}
+        </pre>
+      </div>
     );
   }
 
