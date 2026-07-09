@@ -20,9 +20,11 @@ const NEXT_LABEL: Partial<Record<WorkOrderStatus, string>> = {
 export function StatusChanger({
   workOrderId,
   currentStatus,
+  invoiceVoided = false,
 }: {
   workOrderId: string;
   currentStatus: WorkOrderStatus;
+  invoiceVoided?: boolean;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -83,12 +85,14 @@ export function StatusChanger({
   if (currentStatus === "PAID" || currentStatus === "CANCELLED") return null;
 
   const showCashButton = currentStatus === "COMPLETED" || currentStatus === "INVOICED";
+  const canCreateInvoice =
+    currentStatus === "COMPLETED" || (currentStatus === "INVOICED" && invoiceVoided);
 
   return (
     <div className="flex items-center gap-2">
-      {currentStatus === "COMPLETED" && (
+      {canCreateInvoice && (
         <Button onClick={createInvoice} disabled={loading}>
-          {loading ? "Creating…" : "Create Invoice"}
+          {loading ? "Creating…" : invoiceVoided ? "Create New Invoice" : "Create Invoice"}
         </Button>
       )}
       {nextStatus && label && currentStatus !== "COMPLETED" && (

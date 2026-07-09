@@ -21,11 +21,23 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const wo = await prisma.workOrder.findUnique({
     where: { id: workOrderId },
-    include: { lineItems: true, invoice: true },
+    include: { lineItems: true, invoice: { include: { payments: { select: { id: true } } } } },
   });
 
   if (!wo) return NextResponse.json({ error: "Work order not found" }, { status: 404 });
-  if (wo.invoice) return NextResponse.json({ error: "Invoice already exists", invoiceId: wo.invoice.id }, { status: 409 });
+  if (wo.invoice && wo.invoice.status !== "VOID") {
+    return NextResponse.json({ error: "Invoice already exists", invoiceId: wo.invoice.id }, { status: 409 });
+  }
+  if (wo.invoice && wo.invoice.payments.length > 0) {
+    return NextResponse.json(
+      { error: "Voided invoice has recorded payments and cannot be replaced", invoiceId: wo.invoice.id },
+      { status: 409 }
+    );
+  }
+  // A voided invoice no longer blocks re-invoicing — replace it with a fresh one.
+  if (wo.invoice) {
+    await prisma.invoice.delete({ where: { id: wo.invoice.id } });
+  }
   if (!["COMPLETED", "INVOICED"].includes(wo.status)) {
     return NextResponse.json({ error: "Work order must be completed before invoicing" }, { status: 422 });
   }

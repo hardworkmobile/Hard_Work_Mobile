@@ -60,7 +60,11 @@ export default async function WorkOrderDetailPage({ params }: Params) {
               Edit Details
             </Link>
           )}
-          <StatusChanger workOrderId={id} currentStatus={wo.status} />
+          <StatusChanger
+            workOrderId={id}
+            currentStatus={wo.status}
+            invoiceVoided={wo.invoice?.status === "VOID"}
+          />
           <StartInspectionButton
             workOrderId={id}
             existingInspectionId={wo.inspection?.id ?? null}
@@ -99,12 +103,21 @@ export default async function WorkOrderDetailPage({ params }: Params) {
 
           {/* Invoice link */}
           {wo.invoice && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm">
-              <span className="font-medium text-green-800">Invoice created — </span>
-              <Link href={`/invoices/${wo.invoice.id}`} className="text-green-700 underline">
-                View Invoice
-              </Link>
-            </div>
+            wo.invoice.status === "VOID" ? (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+                <span className="font-medium text-gray-600">Invoice voided — </span>
+                <Link href={`/invoices/${wo.invoice.id}`} className="text-gray-600 underline">
+                  View Voided Invoice
+                </Link>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm">
+                <span className="font-medium text-green-800">Invoice created — </span>
+                <Link href={`/invoices/${wo.invoice.id}`} className="text-green-700 underline">
+                  View Invoice
+                </Link>
+              </div>
+            )
           )}
         </div>
 
