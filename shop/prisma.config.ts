@@ -9,6 +9,9 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Migrations need a direct connection — advisory locks time out through
+    // pgbouncer pooling (Neon's -pooler host). The app itself still uses the
+    // pooled DATABASE_URL via src/lib/db.ts.
+    url: process.env["DATABASE_URL_UNPOOLED"] ?? process.env["DATABASE_URL"],
   },
 });
