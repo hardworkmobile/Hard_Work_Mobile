@@ -9,7 +9,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const page = await squareClient.devices.list({});
+    const page = await squareClient.devices.list({ sortOrder: "ASC" });
     const devices = page.data.map((d) => ({
       deviceId: d.id,
       name: d.attributes?.name,
