@@ -19,8 +19,11 @@ export function TerminalButton({ invoiceId }: Props) {
     const data = await res.json();
 
     if (!res.ok) {
-      setErrorMsg(data.error ?? "Failed to reach Terminal");
+      const detail = data.detail ? `\n\n${JSON.stringify(data.detail, null, 2)}` : "";
+      const msg = (data.error ?? "Failed to reach Terminal") + detail;
+      setErrorMsg(msg);
       setState("error");
+      alert(msg);
       return;
     }
 
