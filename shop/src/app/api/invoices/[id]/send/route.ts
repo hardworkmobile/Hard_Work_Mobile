@@ -24,15 +24,28 @@ export async function POST(_req: NextRequest, { params }: Params) {
     const vehicle = invoice.workOrder.vehicle;
 
     // Build line items — one per work order line item, or fall back to invoice total
+    // Square requires integer quantities unless a quantity_unit is defined.
+    // For fractional quantities (e.g. 1.5 hrs labor), collapse to qty 1 at the line total.
     const lineItems = invoice.workOrder.lineItems.length > 0
-      ? invoice.workOrder.lineItems.map((item) => ({
-          name: item.description,
-          quantity: String(item.quantity),
-          basePriceMoney: {
-            amount: BigInt(Math.round(item.unitPrice * 100)),
-            currency: "USD" as Currency,
-          },
-        }))
+      ? invoice.workOrder.lineItems.map((item) =>
+          Number.isInteger(item.quantity)
+            ? {
+                name: item.description,
+                quantity: String(item.quantity),
+                basePriceMoney: {
+                  amount: BigInt(Math.round(item.unitPrice * 100)),
+                  currency: "USD" as Currency,
+                },
+              }
+            : {
+                name: `${item.description} (${item.quantity} × $${item.unitPrice.toFixed(2)})`,
+                quantity: "1",
+                basePriceMoney: {
+                  amount: BigInt(Math.round(item.quantity * item.unitPrice * 100)),
+                  currency: "USD" as Currency,
+                },
+              }
+        )
       : [
           {
             name: `Invoice ${invoice.number} — ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
