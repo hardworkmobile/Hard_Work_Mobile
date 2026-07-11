@@ -71,8 +71,8 @@ Once the new site is verified live:
 - Remove the `mongodb` devDependency and `ATLAS_URI` once migration is done.
 
 ## Known follow-ups (pre-existing, flagged during migration)
-- The existing admin `/api/*` routes (customers, work-orders, invoices, etc.)
-  are **not** auth-guarded at the route level — the proxy only gates page
-  routes, not `/api/*`. New routes added during this migration (`/api/posts`,
-  `/api/testimonials`) DO check `auth()`. Consider adding `auth()` checks to the
-  older admin API routes before go-live.
+- ~~The existing admin `/api/*` routes were not auth-guarded at the route
+  level.~~ **Fixed** — every staff-only route under `/api/*` now calls
+  `requireStaff(await auth())` (shared helper in `src/lib/require-staff.ts`).
+  The proxy's cookie check is coarse (page routes only); route-level auth is
+  the real gate for `/api/*`.

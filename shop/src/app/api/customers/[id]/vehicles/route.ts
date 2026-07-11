@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { requireStaff } from "@/lib/require-staff";
 
 const vehicleSchema = z.object({
   year: z.number().int().min(1900).max(new Date().getFullYear() + 2),
@@ -17,6 +19,8 @@ const vehicleSchema = z.object({
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id: customerId } = await params;
 
   const vehicles = await prisma.vehicle.findMany({
@@ -29,6 +33,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id: customerId } = await params;
   const body = await req.json();
   const result = vehicleSchema.safeParse(body);

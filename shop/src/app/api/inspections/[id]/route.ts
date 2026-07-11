@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { requireStaff } from "@/lib/require-staff";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
   const inspection = await prisma.inspection.findUnique({
     where: { id },
@@ -20,6 +24,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
   const { notes } = await req.json();
   const inspection = await prisma.inspection.update({ where: { id }, data: { notes } });

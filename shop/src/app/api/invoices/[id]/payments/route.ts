@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { PaymentMethod } from "@/generated/prisma";
+import { requireStaff } from "@/lib/require-staff";
 
 const schema = z.object({
   amount: z.number().positive("Amount must be positive"),
@@ -12,6 +14,8 @@ const schema = z.object({
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id: invoiceId } = await params;
   const body = await req.json();
   const result = schema.safeParse(body);

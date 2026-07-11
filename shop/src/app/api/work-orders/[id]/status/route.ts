@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { WorkOrderStatus } from "@/generated/prisma";
+import { requireStaff } from "@/lib/require-staff";
 
 const schema = z.object({
   status: z.nativeEnum(WorkOrderStatus),
@@ -10,6 +12,8 @@ const schema = z.object({
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
   const body = await req.json();
   const result = schema.safeParse(body);

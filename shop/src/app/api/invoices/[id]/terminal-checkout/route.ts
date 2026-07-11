@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { squareClient } from "@/lib/square";
+import { requireStaff } from "@/lib/require-staff";
 import type { Currency } from "square";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(_req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
 
   const invoice = await prisma.invoice.findUnique({

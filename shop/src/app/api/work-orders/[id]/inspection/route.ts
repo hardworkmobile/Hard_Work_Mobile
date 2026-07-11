@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { INSPECTION_TEMPLATE } from "@/lib/inspection-template";
+import { requireStaff } from "@/lib/require-staff";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(_req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id: workOrderId } = await params;
 
   const wo = await prisma.workOrder.findUnique({ where: { id: workOrderId } });

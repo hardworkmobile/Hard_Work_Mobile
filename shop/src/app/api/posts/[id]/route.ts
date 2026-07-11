@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { requireStaff } from "@/lib/require-staff";
 
 type Params = { params: Promise<{ id: string }> };
-
-function requireStaff(session: Session | null) {
-  const u = session?.user as { id?: string; userType?: string; role?: string } | undefined;
-  const isStaff = !!u && (u.userType === "staff" || (!!u.role && u.userType !== "customer"));
-  return isStaff ? u : null;
-}
 
 function slugify(s: string) {
   return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");

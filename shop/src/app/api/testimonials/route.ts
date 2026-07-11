@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import type { TestimonialStatus } from "@/generated/prisma";
+import { requireStaff } from "@/lib/require-staff";
 
 const STATUSES = ["PENDING", "PUBLISHED", "HIDDEN"] as const;
-
-function requireStaff(session: Session | null) {
-  const u = session?.user as { id?: string; userType?: string; role?: string } | undefined;
-  const isStaff = !!u && (u.userType === "staff" || (!!u.role && u.userType !== "customer"));
-  return isStaff ? u : null;
-}
 
 // GET — admin list (all statuses, optional ?status= filter)
 export async function GET(req: NextRequest) {

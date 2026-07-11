@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { WorkOrderStatus } from "@/generated/prisma";
+import { requireStaff } from "@/lib/require-staff";
 
 const createSchema = z.object({
   customerId: z.string().min(1, "Customer required"),
@@ -32,6 +34,8 @@ async function nextWorkOrderNumber(): Promise<string> {
 }
 
 export async function GET(req: NextRequest) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") as WorkOrderStatus | null;
   const customerId = searchParams.get("customerId");
@@ -73,6 +77,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = await req.json();
   const result = createSchema.safeParse(body);
 

@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { auth } from "@/auth";
 import { r2, r2BucketName, r2PublicUrl } from "@/lib/r2";
+import { requireStaff } from "@/lib/require-staff";
 import { randomUUID } from "crypto";
 
 type Params = { params: Promise<{ id: string; itemId: string }> };
 
 export async function POST(req: NextRequest, { params }: Params) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id, itemId } = await params;
 
   try {

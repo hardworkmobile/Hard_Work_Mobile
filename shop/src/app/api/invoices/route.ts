@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { InvoiceStatus } from "@/generated/prisma";
+import { requireStaff } from "@/lib/require-staff";
 
 export async function GET(req: NextRequest) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") as InvoiceStatus | null;
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));

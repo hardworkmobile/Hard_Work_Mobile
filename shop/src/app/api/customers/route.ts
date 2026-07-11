@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { requireStaff } from "@/lib/require-staff";
 
 const customerSchema = z.object({
   firstName: z.string().min(1, "First name required"),
@@ -15,6 +17,8 @@ const customerSchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? 1));
@@ -46,6 +50,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!requireStaff(await auth())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = await req.json();
   const result = customerSchema.safeParse(body);
 
