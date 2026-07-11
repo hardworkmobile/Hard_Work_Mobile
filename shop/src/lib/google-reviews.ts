@@ -109,3 +109,35 @@ export async function searchPlaceCandidates(query: string, useLocationBias = tru
   }
   return { status: res.status, ok: res.ok, body: bodyJson };
 }
+
+// Sanity check independent of the business name — looks for ANY car repair
+// shops near the known coordinates. If this is also empty, the problem is
+// upstream (key / billing / API enablement), not the business listing.
+export async function searchNearbyDebug() {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_PLACES_API_KEY not set");
+
+  const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress",
+    },
+    body: JSON.stringify({
+      includedTypes: ["car_repair"],
+      maxResultCount: 5,
+      locationRestriction: {
+        circle: { center: { latitude: 40.0841195, longitude: -75.575869 }, radius: 15000 },
+      },
+    }),
+  });
+  const bodyText = await res.text();
+  let bodyJson: unknown;
+  try {
+    bodyJson = JSON.parse(bodyText);
+  } catch {
+    bodyJson = bodyText;
+  }
+  return { status: res.status, ok: res.ok, body: bodyJson };
+}
