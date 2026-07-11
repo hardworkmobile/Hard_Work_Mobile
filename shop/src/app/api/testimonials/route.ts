@@ -23,12 +23,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ testimonials });
 }
 
-// POST — public/customer submission (always created as PENDING for moderation)
+// POST — public/customer submission (PENDING for moderation) OR staff-curated
+// entry (e.g. copied from Google Business Profile) — published immediately.
 const submitSchema = z.object({
   quote: z.string().trim().min(1, "Please write a few words.").max(2000),
   rating: z.coerce.number().int().min(1).max(5),
   authorName: z.string().trim().min(1, "Name required").max(80),
   serviceLabel: z.string().trim().max(120).optional(),
+  fromGoogle: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -38,19 +40,22 @@ export async function POST(req: NextRequest) {
   }
   const d = parsed.data;
 
-  const u = (await auth())?.user as { id?: string; name?: string; userType?: string } | undefined;
+  const session = await auth();
+  const staff = requireStaff(session);
+  const u = session?.user as { id?: string; name?: string; userType?: string } | undefined;
   const isCustomer = u?.userType === "customer";
 
-  await prisma.testimonial.create({
+  const created = await prisma.testimonial.create({
     data: {
       quote: d.quote,
       rating: d.rating,
       authorName: isCustomer && u?.name ? u.name : d.authorName,
       serviceLabel: d.serviceLabel || null,
-      status: "PENDING",
+      fromGoogle: staff ? !!d.fromGoogle : false,
+      status: staff ? "PUBLISHED" : "PENDING",
       customerId: isCustomer ? u?.id : undefined,
     },
   });
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json(created, { status: 201 });
 }

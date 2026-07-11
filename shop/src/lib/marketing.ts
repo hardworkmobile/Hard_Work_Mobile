@@ -5,6 +5,8 @@ export const PHONE = "(484) 593-3875";
 export const PHONE_HREF = "tel:4845933875";
 export const RATE = "$80/hr";
 export const AREA = "Chester, Delaware & Montgomery Counties, PA";
+// Google Business Profile listing (CID link — works without the Places API).
+export const GOOGLE_REVIEWS_URL = "https://www.google.com/maps?cid=15453899563222996524";
 
 export type ServiceOverview = {
   icon: string; // Font Awesome class

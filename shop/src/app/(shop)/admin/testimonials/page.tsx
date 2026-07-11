@@ -12,6 +12,7 @@ export default async function AdminTestimonialsPage() {
     rating: t.rating,
     authorName: t.authorName,
     serviceLabel: t.serviceLabel,
+    fromGoogle: t.fromGoogle,
     status: t.status,
     adminReply: t.adminReply,
     createdAt: t.createdAt.toISOString(),

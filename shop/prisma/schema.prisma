@@ -375,6 +375,7 @@ model Testimonial {
   authorName      String
   serviceLabel    String?           // free-text (old Service FK dropped on migration)
   profileImageUrl String?
+  fromGoogle      Boolean           @default(false) // staff-curated, copied from Google Business Profile
   status          TestimonialStatus @default(PENDING)
   adminReply      String?
   customerId      String?

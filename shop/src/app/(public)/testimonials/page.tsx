@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { StarRating } from "@/components/public/StarRating";
 import { TestimonialForm } from "@/components/public/TestimonialForm";
+import { GOOGLE_REVIEWS_URL } from "@/lib/marketing";
 
 export const metadata: Metadata = {
   title: "Reviews — Hard Work Mobile",
@@ -24,6 +26,14 @@ export default async function TestimonialsPage() {
           <p className="mx-auto mt-4 max-w-2xl text-gray-300">
             Real reviews from real customers across Chester, Delaware &amp; Montgomery Counties.
           </p>
+          <a
+            href={GOOGLE_REVIEWS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#d4af37] px-5 py-2.5 font-bold text-[#1e2833] hover:bg-[#c9a42e] transition-colors"
+          >
+            Read Our Reviews on Google <ExternalLink className="h-4 w-4" />
+          </a>
         </div>
       </section>
 
@@ -34,7 +44,14 @@ export default async function TestimonialsPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             {testimonials.map((t) => (
               <figure key={t.id} className="flex flex-col rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <StarRating rating={t.rating} />
+                <div className="flex items-center justify-between">
+                  <StarRating rating={t.rating} />
+                  {t.fromGoogle && (
+                    <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                      Google Review
+                    </span>
+                  )}
+                </div>
                 <blockquote className="mt-3 flex-1 text-gray-700">“{t.quote}”</blockquote>
                 <figcaption className="mt-4">
                   <p className="font-bold text-[#1e2833]">{t.authorName}</p>

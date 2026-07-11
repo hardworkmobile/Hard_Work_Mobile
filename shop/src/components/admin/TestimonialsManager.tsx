@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, MessageSquareQuote, Check, EyeOff, Trash2, Reply } from "lucide-react";
+import { Star, MessageSquareQuote, Check, EyeOff, Trash2, Reply, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Row = {
@@ -10,10 +10,13 @@ type Row = {
   rating: number;
   authorName: string;
   serviceLabel: string | null;
+  fromGoogle: boolean;
   status: "PENDING" | "PUBLISHED" | "HIDDEN";
   adminReply: string | null;
   createdAt: string;
 };
+
+const ADD_FORM_INITIAL = { quote: "", rating: 5, authorName: "", serviceLabel: "" };
 
 const TABS = [
   { label: "Pending", value: "PENDING" },
@@ -34,6 +37,9 @@ export function TestimonialsManager({ initial }: { initial: Row[] }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [replyFor, setReplyFor] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState(ADD_FORM_INITIAL);
+  const [adding, setAdding] = useState(false);
 
   const shown = tab ? rows.filter((r) => r.status === tab) : rows;
   const pendingCount = rows.filter((r) => r.status === "PENDING").length;
@@ -66,15 +72,98 @@ export function TestimonialsManager({ initial }: { initial: Row[] }) {
     setReplyFor(null);
   }
 
+  async function addGoogleReview() {
+    if (!addForm.quote.trim() || !addForm.authorName.trim()) return;
+    setAdding(true);
+    const res = await fetch("/api/testimonials", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...addForm, serviceLabel: addForm.serviceLabel || undefined, fromGoogle: true }),
+    });
+    setAdding(false);
+    if (res.ok) {
+      const created = await res.json();
+      setRows((prev) => [
+        {
+          id: created.id,
+          quote: created.quote,
+          rating: created.rating,
+          authorName: created.authorName,
+          serviceLabel: created.serviceLabel,
+          fromGoogle: created.fromGoogle,
+          status: created.status,
+          adminReply: created.adminReply,
+          createdAt: created.createdAt,
+        },
+        ...prev,
+      ]);
+      setAddForm(ADD_FORM_INITIAL);
+      setShowAddForm(false);
+      setTab("PUBLISHED");
+    }
+  }
+
   return (
     <div className="max-w-4xl p-4 sm:p-8">
-      <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-        <MessageSquareQuote className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Testimonials</h1>
-        {pendingCount > 0 && (
-          <span className="rounded-full bg-yellow-500 px-2.5 py-0.5 text-xs font-bold text-white">{pendingCount} pending</span>
-        )}
+      <div className="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <MessageSquareQuote className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Testimonials</h1>
+          {pendingCount > 0 && (
+            <span className="rounded-full bg-yellow-500 px-2.5 py-0.5 text-xs font-bold text-white">{pendingCount} pending</span>
+          )}
+        </div>
+        <button
+          onClick={() => setShowAddForm((v) => !v)}
+          className="flex items-center gap-1.5 rounded-md bg-[#1e2833] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#2a3644]"
+        >
+          {showAddForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          Add Google Review
+        </button>
       </div>
+
+      {showAddForm && (
+        <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5 space-y-3">
+          <p className="text-sm text-gray-500">
+            Copy a review's text and star rating from your Google Business Profile. It publishes immediately.
+          </p>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" onClick={() => setAddForm((f) => ({ ...f, rating: n }))}>
+                <Star className="h-6 w-6" fill={n <= addForm.rating ? "#d4af37" : "none"} stroke={n <= addForm.rating ? "#d4af37" : "#cbd5e1"} />
+              </button>
+            ))}
+          </div>
+          <textarea
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            rows={3}
+            placeholder="Review text…"
+            value={addForm.quote}
+            onChange={(e) => setAddForm((f) => ({ ...f, quote: e.target.value }))}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              placeholder="Reviewer name"
+              value={addForm.authorName}
+              onChange={(e) => setAddForm((f) => ({ ...f, authorName: e.target.value }))}
+            />
+            <input
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              placeholder="Service (optional)"
+              value={addForm.serviceLabel}
+              onChange={(e) => setAddForm((f) => ({ ...f, serviceLabel: e.target.value }))}
+            />
+          </div>
+          <button
+            onClick={addGoogleReview}
+            disabled={adding || !addForm.quote.trim() || !addForm.authorName.trim()}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {adding ? "Adding…" : "Publish Review"}
+          </button>
+        </div>
+      )}
 
       <div className="mb-4 sm:mb-6 flex w-fit gap-1 rounded-lg bg-gray-100 p-1 overflow-x-auto">
         {TABS.map((t) => (
@@ -96,10 +185,15 @@ export function TestimonialsManager({ initial }: { initial: Row[] }) {
             <div key={r.id} className={cn("rounded-xl border border-gray-200 p-4 sm:p-5", busy === r.id && "opacity-50")}>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <Star key={n} className="h-4 w-4" fill={n <= r.rating ? "#d4af37" : "none"} stroke={n <= r.rating ? "#d4af37" : "#cbd5e1"} />
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star key={n} className="h-4 w-4" fill={n <= r.rating ? "#d4af37" : "none"} stroke={n <= r.rating ? "#d4af37" : "#cbd5e1"} />
+                      ))}
+                    </div>
+                    {r.fromGoogle && (
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">Google</span>
+                    )}
                   </div>
                   <p className="mt-2 text-gray-800">“{r.quote}”</p>
                   <p className="mt-2 text-sm font-semibold text-gray-900">
