@@ -142,6 +142,36 @@ export async function searchNearbyDebug(radius = 15000, maxResultCount = 5, incl
   return { status: res.status, ok: res.ok, body: bodyJson };
 }
 
+// Autocomplete (New) — uses different matching/indexing than Text/Nearby
+// Search, built for partial-match-as-you-type, which sometimes surfaces
+// listings the search endpoints miss.
+export async function autocompleteDebug(input: string) {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_PLACES_API_KEY not set");
+
+  const res = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+    },
+    body: JSON.stringify({
+      input,
+      locationBias: {
+        circle: { center: { latitude: 40.0841195, longitude: -75.575869 }, radius: 15000 },
+      },
+    }),
+  });
+  const bodyText = await res.text();
+  let bodyJson: unknown;
+  try {
+    bodyJson = JSON.parse(bodyText);
+  } catch {
+    bodyJson = bodyText;
+  }
+  return { status: res.status, ok: res.ok, body: bodyJson };
+}
+
 // Tries fetching Place Details directly using the legacy feature ID (ftid)
 // embedded in the business's Google Maps share URL, in case the New Places
 // API accepts it as a placeId even though it's not the documented format.

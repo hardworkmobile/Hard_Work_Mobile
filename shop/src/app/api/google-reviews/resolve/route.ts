@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { requireStaff } from "@/lib/require-staff";
-import { searchPlaceCandidates, searchNearbyDebug, tryPlaceDetailsByFtid } from "@/lib/google-reviews";
+import { autocompleteDebug } from "@/lib/google-reviews";
 
 // One-time lookup to find the Google Places ID for GOOGLE_PLACE_ID.
 // Not needed once that env var is set — kept around in case the listing
@@ -11,21 +11,11 @@ export async function GET() {
   if (!requireStaff(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const [withBias, withoutBias, broadQuery, nearbyTight, ftidLookup] = await Promise.all([
-      searchPlaceCandidates("Hard Work Mobile Auto Tech Co.", true),
-      searchPlaceCandidates("Hard Work Mobile Auto Tech Co.", false),
-      searchPlaceCandidates("Hard Work Mobile mechanic West Chester PA", false),
-      searchNearbyDebug(3000, 20),
-      tryPlaceDetailsByFtid(),
+    const [full, partial] = await Promise.all([
+      autocompleteDebug("Hard Work Mobile Auto Tech Co."),
+      autocompleteDebug("Hard Work Mobile"),
     ]);
-    return NextResponse.json({
-      keyConfigured: !!process.env.GOOGLE_PLACES_API_KEY,
-      withBias,
-      withoutBias,
-      broadQuery,
-      nearbyTight,
-      ftidLookup,
-    });
+    return NextResponse.json({ full, partial });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Search failed" }, { status: 502 });
   }
