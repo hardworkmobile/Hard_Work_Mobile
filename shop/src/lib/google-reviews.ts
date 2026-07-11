@@ -80,7 +80,9 @@ export async function getGooglePlaceReviews(): Promise<GooglePlaceReviews | null
 }
 
 // Text Search (New) — used once by /api/google-reviews/resolve to find the Place ID.
-export async function searchPlaceCandidates(query: string) {
+// Returns raw status + body (not just parsed places) so failures are diagnosable
+// instead of silently looking like "no results".
+export async function searchPlaceCandidates(query: string, useLocationBias = true) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_PLACES_API_KEY not set");
 
@@ -93,16 +95,17 @@ export async function searchPlaceCandidates(query: string) {
     },
     body: JSON.stringify({
       textQuery: query,
-      locationBias: {
-        circle: {
-          center: { latitude: 40.0841195, longitude: -75.575869 },
-          radius: 5000,
-        },
-      },
+      ...(useLocationBias
+        ? { locationBias: { circle: { center: { latitude: 40.0841195, longitude: -75.575869 }, radius: 15000 } } }
+        : {}),
     }),
   });
-  if (!res.ok) {
-    throw new Error(`Text Search failed: ${res.status} ${await res.text()}`);
+  const bodyText = await res.text();
+  let bodyJson: unknown;
+  try {
+    bodyJson = JSON.parse(bodyText);
+  } catch {
+    bodyJson = bodyText;
   }
-  return res.json();
+  return { status: res.status, ok: res.ok, body: bodyJson };
 }

@@ -11,8 +11,17 @@ export async function GET() {
   if (!requireStaff(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const result = await searchPlaceCandidates("Hard Work Mobile Auto Tech Co.");
-    return NextResponse.json(result);
+    const [withBias, withoutBias, broadQuery] = await Promise.all([
+      searchPlaceCandidates("Hard Work Mobile Auto Tech Co.", true),
+      searchPlaceCandidates("Hard Work Mobile Auto Tech Co.", false),
+      searchPlaceCandidates("Hard Work Mobile mechanic West Chester PA", false),
+    ]);
+    return NextResponse.json({
+      keyConfigured: !!process.env.GOOGLE_PLACES_API_KEY,
+      withBias,
+      withoutBias,
+      broadQuery,
+    });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Search failed" }, { status: 502 });
   }
