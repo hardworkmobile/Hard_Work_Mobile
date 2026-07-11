@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   try {
     const [devicesPage, codesPage] = await Promise.all([
       squareClient.devices.list({ sortOrder: "ASC" }),
-      squareClient.devices.codes.list({}),
+      squareClient.devices.codes.list({ productType: "TERMINAL_API" }),
     ]);
     const devices = devicesPage.data.map((d) => ({
       deviceId: d.id,
