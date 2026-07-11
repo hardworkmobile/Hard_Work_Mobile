@@ -192,7 +192,7 @@ export function InspectionBoard({
                       {/* Photos */}
                       <div className="flex flex-wrap gap-2 items-center">
                         {item.photos.map((photo) => (
-                          <div key={photo.id} className="relative group h-16 w-16">
+                          <div key={photo.id} className="relative h-16 w-16">
                             <img
                               src={photo.url}
                               alt=""
@@ -200,7 +200,7 @@ export function InspectionBoard({
                             />
                             <button
                               onClick={() => deletePhoto(item.id, photo.id)}
-                              className="absolute -top-1 -right-1 hidden group-hover:flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white"
+                              className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow"
                             >
                               <X className="h-3 w-3" />
                             </button>
