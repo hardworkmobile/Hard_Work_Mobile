@@ -138,6 +138,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const woNumber = await nextWorkOrderNumber();
   const serviceLabel =
     booking.service === "Other" ? `Other: ${booking.serviceOther ?? ""}` : booking.service;
+  const description = booking.issueDetails
+    ? `${serviceLabel} — ${booking.issueDetails}`
+    : serviceLabel;
 
   const scheduledAt = new Date(booking.preferredDate);
   scheduledAt.setUTCHours(12, 0, 0, 0); // default to noon
@@ -147,7 +150,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       number: woNumber,
       customerId: customer.id,
       vehicleId: vehicle.id,
-      description: serviceLabel,
+      description,
       serviceLocation: booking.serviceAddress,
       scheduledAt,
       customerNotes: `Preferred time: ${TIME_SLOT_LABELS[booking.preferredTimeSlot]}. Source: ${booking.source}.`,

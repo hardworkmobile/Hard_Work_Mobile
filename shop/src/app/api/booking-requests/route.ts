@@ -43,6 +43,7 @@ const createSchema = z.object({
   vehicleModel: z.string().trim().min(1),
   service: z.string().trim().min(1),
   serviceOther: z.string().trim().optional(),
+  issueDetails: z.string().trim().max(2000).optional(),
   preferredDate: z.coerce.date(),
   preferredTimeSlot: z.string().transform((v) => v.toLowerCase()).pipe(z.enum(["morning", "afternoon", "evening"])),
   serviceAddress: z.string().trim().min(1),
@@ -80,6 +81,7 @@ export async function POST(req: NextRequest) {
       vehicleModel: d.vehicleModel,
       service: d.service,
       serviceOther: d.serviceOther,
+      issueDetails: d.issueDetails,
       preferredDate: d.preferredDate,
       preferredTimeSlot: TIME_SLOT_MAP[d.preferredTimeSlot],
       serviceAddress: d.serviceAddress,
@@ -148,6 +150,10 @@ export async function POST(req: NextRequest) {
          <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${timeSlotLabel}</td></tr>
          <tr><td style="padding:8px 0;color:#94a3b8;">Location</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${d.serviceAddress}</td></tr>
        </table>
+       ${d.issueDetails ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 16px;margin:0 0 20px;">
+         <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;">Customer's Description</p>
+         <p style="margin:0;color:#78350f;white-space:pre-wrap;">${d.issueDetails}</p>
+       </div>` : ""}
        <a href="${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/booking-requests" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">View in Admin →</a>`
     ),
   });

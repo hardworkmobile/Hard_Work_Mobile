@@ -15,6 +15,7 @@ type BookingRequest = {
   vehicleModel: string;
   service: string;
   serviceOther?: string;
+  issueDetails?: string;
   preferredDate: string;
   preferredTimeSlot: "MORNING" | "AFTERNOON" | "EVENING";
   serviceAddress: string;
@@ -264,6 +265,12 @@ export function BookingRequestsClient() {
                     </div>
                   </div>
 
+                  {r.issueDetails && (
+                    <div className="mt-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 whitespace-pre-wrap">
+                      {r.issueDetails}
+                    </div>
+                  )}
+
                   {/* Actions */}
                   {r.status === "NEW" && !isLoading && (
                     <div className="mt-3 pt-3 border-t border-gray-100">
@@ -365,6 +372,11 @@ export function BookingRequestsClient() {
                           <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
                           <span className="break-words">{r.serviceAddress}</span>
                         </div>
+                        {r.issueDetails && (
+                          <div className="mt-1.5 rounded-md bg-amber-50 border border-amber-200 px-2 py-1.5 text-xs text-amber-900 whitespace-pre-wrap">
+                            {r.issueDetails}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3 align-top whitespace-nowrap">
                         <div className="flex items-center gap-1.5 text-gray-700">

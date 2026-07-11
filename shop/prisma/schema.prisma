@@ -295,6 +295,7 @@ model BookingRequest {
   vehicleModel      String
   service           String              // free-text service label (no Service catalog anymore)
   serviceOther      String?
+  issueDetails      String?             // customer's free-text description of the specific problem
   preferredDate     DateTime
   preferredTimeSlot PreferredTimeSlot
   serviceAddress    String

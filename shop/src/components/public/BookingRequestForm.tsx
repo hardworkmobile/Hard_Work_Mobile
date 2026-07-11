@@ -56,7 +56,7 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
   const initial = {
     name: "", email: "", phone: "",
     vehicleYear: "", vehicleMake: "", vehicleModel: "",
-    service: defaultService, serviceOther: "",
+    service: defaultService, serviceOther: "", issueDetails: "",
     preferredDate: "", preferredTimeSlot: "",
     serviceAddress: "",
   };
@@ -210,6 +210,19 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
               <textarea id="br-service-other" name="serviceOther" value={form.serviceOther} onChange={handleChange} placeholder="Describe what's going on with your vehicle…" rows={3} required className={inputCls + " resize-none"} />
             </div>
           )}
+          <div className="mt-3">
+            <label htmlFor="br-issue-details" className={labelCls}>Describe the issue (optional)</label>
+            <textarea
+              id="br-issue-details"
+              name="issueDetails"
+              value={form.issueDetails}
+              onChange={handleChange}
+              placeholder="e.g. Squealing noise when braking, or the belt tensioner is loose and there's some wiring damage from a DIY repair…"
+              rows={3}
+              className={inputCls + " resize-none"}
+            />
+            <p className="text-xs text-gray-400 mt-1.5">The more detail you give us, the better we can prep before we arrive.</p>
+          </div>
         </section>
 
         <hr className="border-gray-100" />
