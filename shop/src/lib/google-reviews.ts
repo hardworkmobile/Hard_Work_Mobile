@@ -113,7 +113,7 @@ export async function searchPlaceCandidates(query: string, useLocationBias = tru
 // Sanity check independent of the business name — looks for ANY car repair
 // shops near the known coordinates. If this is also empty, the problem is
 // upstream (key / billing / API enablement), not the business listing.
-export async function searchNearbyDebug() {
+export async function searchNearbyDebug(radius = 15000, maxResultCount = 5, includedTypes?: string[]) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_PLACES_API_KEY not set");
 
@@ -125,12 +125,36 @@ export async function searchNearbyDebug() {
       "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress",
     },
     body: JSON.stringify({
-      includedTypes: ["car_repair"],
-      maxResultCount: 5,
+      ...(includedTypes ? { includedTypes } : {}),
+      maxResultCount,
       locationRestriction: {
-        circle: { center: { latitude: 40.0841195, longitude: -75.575869 }, radius: 15000 },
+        circle: { center: { latitude: 40.0841195, longitude: -75.575869 }, radius },
       },
     }),
+  });
+  const bodyText = await res.text();
+  let bodyJson: unknown;
+  try {
+    bodyJson = JSON.parse(bodyText);
+  } catch {
+    bodyJson = bodyText;
+  }
+  return { status: res.status, ok: res.ok, body: bodyJson };
+}
+
+// Tries fetching Place Details directly using the legacy feature ID (ftid)
+// embedded in the business's Google Maps share URL, in case the New Places
+// API accepts it as a placeId even though it's not the documented format.
+export async function tryPlaceDetailsByFtid() {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_PLACES_API_KEY not set");
+
+  const ftid = "0x89c6f1ba880f5a6d:0xd67747c64478962c";
+  const res = await fetch(`https://places.googleapis.com/v1/places/${ftid}`, {
+    headers: {
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": "id,displayName,rating,userRatingCount",
+    },
   });
   const bodyText = await res.text();
   let bodyJson: unknown;
