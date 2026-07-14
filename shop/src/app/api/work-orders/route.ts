@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { WorkOrderStatus } from "@/generated/prisma";
+import { WorkOrderStatus, PreferredTimeSlot } from "@/generated/prisma";
 import { requireStaff } from "@/lib/require-staff";
+import { slotWindow } from "@/lib/google-calendar";
 
 const createSchema = z.object({
   customerId: z.string().min(1, "Customer required"),
@@ -12,7 +13,8 @@ const createSchema = z.object({
   diagnosis: z.string().optional(),
   technician: z.string().optional(),
   serviceLocation: z.string().optional(),
-  scheduledAt: z.string().datetime().optional().nullable(),
+  scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  scheduledTimeSlot: z.nativeEnum(PreferredTimeSlot).optional(),
   mileageIn: z.number().int().nonnegative().optional().nullable(),
   internalNotes: z.string().optional(),
   customerNotes: z.string().optional(),
@@ -90,9 +92,16 @@ export async function POST(req: NextRequest) {
   }
 
   const number = await nextWorkOrderNumber();
+  const { scheduledDate, scheduledTimeSlot, ...rest } = result.data;
+
+  let scheduledAt: Date | undefined;
+  if (scheduledDate && scheduledTimeSlot) {
+    const [year, month, day] = scheduledDate.split("-").map(Number);
+    scheduledAt = slotWindow({ year, month, day }, scheduledTimeSlot).startUtc;
+  }
 
   const workOrder = await prisma.workOrder.create({
-    data: { ...result.data, number },
+    data: { ...rest, number, scheduledAt, scheduledTimeSlot },
     include: {
       customer: true,
       vehicle: true,

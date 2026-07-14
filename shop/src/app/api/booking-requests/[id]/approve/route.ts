@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { sendSms } from "@/lib/sms";
+import { slotWindow, createCalendarEvent } from "@/lib/google-calendar";
 import type { PreferredTimeSlot } from "@/generated/prisma";
 
 type Params = { params: Promise<{ id: string }> };
@@ -142,8 +143,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
     ? `${serviceLabel} — ${booking.issueDetails}`
     : serviceLabel;
 
-  const scheduledAt = new Date(booking.preferredDate);
-  scheduledAt.setUTCHours(12, 0, 0, 0); // default to noon
+  const pd = new Date(booking.preferredDate);
+  const dateParts = { year: pd.getUTCFullYear(), month: pd.getUTCMonth() + 1, day: pd.getUTCDate() };
+  const { startUtc } = slotWindow(dateParts, booking.preferredTimeSlot);
 
   const workOrder = await prisma.workOrder.create({
     data: {
@@ -152,10 +154,25 @@ export async function POST(_req: NextRequest, { params }: Params) {
       vehicleId: vehicle.id,
       description,
       serviceLocation: booking.serviceAddress,
-      scheduledAt,
+      status: "SCHEDULED",
+      scheduledAt: startUtc,
+      scheduledTimeSlot: booking.preferredTimeSlot,
       customerNotes: `Preferred time: ${TIME_SLOT_LABELS[booking.preferredTimeSlot]}. Source: ${booking.source}.`,
     },
   });
+
+  // Approving a booking IS the scheduling action — put it on the calendar now.
+  const googleEventId = await createCalendarEvent({
+    date: dateParts,
+    slot: booking.preferredTimeSlot,
+    summary: `${firstName} ${lastName} — ${serviceLabel}`,
+    description: `Vehicle: ${booking.vehicleYear} ${booking.vehicleMake} ${booking.vehicleModel}\nWork Order: ${woNumber}\nPhone: ${booking.phone}`,
+    location: booking.serviceAddress,
+    attendeeEmail: booking.email,
+  });
+  if (googleEventId) {
+    await prisma.workOrder.update({ where: { id: workOrder.id }, data: { googleEventId } });
+  }
 
   // 5. Mark booking as converted and link the customer
   await prisma.bookingRequest.update({

@@ -100,7 +100,9 @@ model WorkOrder {
   recommendations String?
   technician      String?
   serviceLocation String?         // Address where mobile service is performed
-  scheduledAt     DateTime?
+  scheduledAt       DateTime?
+  scheduledTimeSlot PreferredTimeSlot? // which named slot this occupies, for calendar blocking
+  googleEventId     String?         // Google Calendar event ID, once scheduled
   startedAt       DateTime?
   completedAt     DateTime?
   mileageIn       Int?

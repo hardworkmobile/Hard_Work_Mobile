@@ -9,12 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomerVehiclePicker } from "./CustomerVehiclePicker";
+import { TimeSlotPicker } from "./TimeSlotPicker";
 
 const schema = z.object({
   description: z.string().min(1, "Required — describe what the customer is reporting"),
   technician: z.string().optional(),
   serviceLocation: z.string().optional(),
-  scheduledAt: z.string().optional(),
+  scheduledDate: z.string().optional(),
   mileageIn: z.number().int().nonnegative().optional(),
   internalNotes: z.string().optional(),
   customerNotes: z.string().optional(),
@@ -32,6 +33,7 @@ export function WorkOrderForm({ defaultCustomerId, defaultVehicleId }: Props) {
   const [customerId, setCustomerId] = useState(defaultCustomerId ?? "");
   const [vehicleId, setVehicleId] = useState(defaultVehicleId ?? "");
   const [pickError, setPickError] = useState("");
+  const [scheduledTimeSlot, setScheduledTimeSlot] = useState("");
 
   const {
     register,
@@ -51,7 +53,8 @@ export function WorkOrderForm({ defaultCustomerId, defaultVehicleId }: Props) {
         ...data,
         customerId,
         vehicleId,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
+        scheduledDate: data.scheduledDate || undefined,
+        scheduledTimeSlot: scheduledTimeSlot || undefined,
         mileageIn: data.mileageIn || null,
       }),
     });
@@ -88,13 +91,18 @@ export function WorkOrderForm({ defaultCustomerId, defaultVehicleId }: Props) {
       {/* Schedule + Location */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Scheduled Date & Time</label>
-          <Input {...register("scheduledAt")} type="datetime-local" />
+          <label className="text-sm font-medium text-gray-700">Scheduled Date</label>
+          <Input {...register("scheduledDate")} type="date" />
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">Service Location</label>
           <Input {...register("serviceLocation")} placeholder="Customer's driveway address…" />
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">Time Slot</label>
+        <TimeSlotPicker value={scheduledTimeSlot} onChange={setScheduledTimeSlot} />
       </div>
 
       {/* Technician + Mileage */}

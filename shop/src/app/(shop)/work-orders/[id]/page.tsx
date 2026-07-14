@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Phone, Car, MapPin, Clock, Pencil, User, ClipboardCheck } from "lucide-react";
+import { ChevronLeft, Phone, Car, MapPin, Clock, Pencil, User, ClipboardCheck, CalendarCheck } from "lucide-react";
 import { StatusBadge } from "@/components/work-orders/StatusBadge";
 import { StatusChanger } from "@/components/work-orders/StatusChanger";
 import { LineItemsEditor } from "@/components/work-orders/LineItemsEditor";
@@ -12,6 +12,12 @@ import { formatPhone } from "@/lib/utils";
 type Params = { params: Promise<{ id: string }> };
 
 const EDITABLE_STATUSES = new Set(["PENDING", "SCHEDULED", "IN_PROGRESS"]);
+
+const SLOT_LABELS: Record<string, string> = {
+  MORNING: "Morning",
+  AFTERNOON: "Afternoon",
+  EVENING: "Evening",
+};
 
 export default async function WorkOrderDetailPage({ params }: Params) {
   const { id } = await params;
@@ -167,6 +173,15 @@ export default async function WorkOrderDetailPage({ params }: Params) {
                   weekday: "short", month: "short", day: "numeric",
                   hour: "numeric", minute: "2-digit",
                 })}
+                {wo.scheduledTimeSlot && (
+                  <span className="text-gray-400">({SLOT_LABELS[wo.scheduledTimeSlot]})</span>
+                )}
+              </p>
+            )}
+            {wo.googleEventId && (
+              <p className="flex items-center gap-1.5 text-xs text-green-600">
+                <CalendarCheck className="h-3.5 w-3.5" />
+                On Google Calendar
               </p>
             )}
             {wo.serviceLocation && (

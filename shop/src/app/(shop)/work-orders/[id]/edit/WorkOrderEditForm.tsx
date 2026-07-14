@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,12 +8,13 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TimeSlotPicker } from "@/components/work-orders/TimeSlotPicker";
 
 const schema = z.object({
   description: z.string().min(1, "Required"),
   technician: z.string().optional(),
   serviceLocation: z.string().optional(),
-  scheduledAt: z.string().optional(),
+  scheduledDate: z.string().optional(),
   mileageIn: z.number().int().nonnegative().optional(),
   mileageOut: z.number().int().nonnegative().optional(),
   internalNotes: z.string().optional(),
@@ -23,11 +25,12 @@ type FormValues = z.infer<typeof schema>;
 
 interface Props {
   workOrderId: string;
-  defaultValues: Partial<FormValues>;
+  defaultValues: Partial<FormValues> & { scheduledTimeSlot?: string };
 }
 
 export function WorkOrderEditForm({ workOrderId, defaultValues }: Props) {
   const router = useRouter();
+  const [scheduledTimeSlot, setScheduledTimeSlot] = useState(defaultValues.scheduledTimeSlot ?? "");
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -40,7 +43,8 @@ export function WorkOrderEditForm({ workOrderId, defaultValues }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...data,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
+        scheduledDate: data.scheduledDate || null,
+        scheduledTimeSlot: scheduledTimeSlot || null,
         mileageIn: data.mileageIn || null,
         mileageOut: data.mileageOut || null,
       }),
@@ -61,13 +65,18 @@ export function WorkOrderEditForm({ workOrderId, defaultValues }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Scheduled Date & Time</label>
-          <Input {...register("scheduledAt")} type="datetime-local" />
+          <label className="text-sm font-medium text-gray-700">Scheduled Date</label>
+          <Input {...register("scheduledDate")} type="date" />
         </div>
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">Service Location</label>
           <Input {...register("serviceLocation")} />
         </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">Time Slot</label>
+        <TimeSlotPicker value={scheduledTimeSlot} onChange={setScheduledTimeSlot} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

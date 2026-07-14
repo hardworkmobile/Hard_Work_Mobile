@@ -66,6 +66,7 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
   const [modelsLoading, setModelsLoading] = useState(false);
   const [status, setStatus] = useState({ submitted: false, error: false, message: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [busySlots, setBusySlots] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!form.vehicleMake) { setModels([]); return; }
@@ -76,6 +77,21 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
       .catch(() => setModels([]))
       .finally(() => setModelsLoading(false));
   }, [form.vehicleMake]);
+
+  useEffect(() => {
+    if (!form.preferredDate) { setBusySlots({}); return; }
+    let cancelled = false;
+    fetch(`/api/booking-availability?date=${form.preferredDate}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setBusySlots(data);
+        // Deselect a slot that just became unavailable for this date.
+        setForm((f) => (f.preferredTimeSlot && data[f.preferredTimeSlot] ? { ...f, preferredTimeSlot: "" } : f));
+      })
+      .catch(() => { if (!cancelled) setBusySlots({}); });
+    return () => { cancelled = true; };
+  }, [form.preferredDate]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
@@ -239,19 +255,25 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
             <div className="grid grid-cols-3 gap-3">
               {TIME_SLOTS.map((slot) => {
                 const selected = form.preferredTimeSlot === slot.value;
+                const busy = !!busySlots[slot.value];
                 return (
                   <button
                     key={slot.value}
                     type="button"
+                    disabled={busy}
                     onClick={() => setForm((f) => ({ ...f, preferredTimeSlot: slot.value }))}
                     className={[
-                      "flex flex-col items-center justify-center rounded-xl border-2 py-4 px-2 cursor-pointer transition-all",
-                      selected ? "border-[#d4af37] bg-amber-50 shadow-sm" : "border-gray-200 bg-white hover:border-gray-300",
+                      "flex flex-col items-center justify-center rounded-xl border-2 py-4 px-2 transition-all",
+                      busy
+                        ? "cursor-not-allowed border-gray-100 bg-gray-50 opacity-50"
+                        : selected
+                          ? "cursor-pointer border-[#d4af37] bg-amber-50 shadow-sm"
+                          : "cursor-pointer border-gray-200 bg-white hover:border-gray-300",
                     ].join(" ")}
                   >
                     <span className="text-2xl mb-1">{slot.icon}</span>
                     <span className={`text-sm font-semibold ${selected ? "text-[#1e2833]" : "text-gray-700"}`}>{slot.label}</span>
-                    <span className="text-xs text-gray-400 mt-0.5">{slot.desc}</span>
+                    <span className="text-xs text-gray-400 mt-0.5">{busy ? "Unavailable" : slot.desc}</span>
                   </button>
                 );
               })}
