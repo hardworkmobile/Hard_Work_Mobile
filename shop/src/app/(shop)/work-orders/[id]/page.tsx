@@ -70,6 +70,7 @@ export default async function WorkOrderDetailPage({ params }: Params) {
             workOrderId={id}
             currentStatus={wo.status}
             invoiceVoided={wo.invoice?.status === "VOID"}
+            hasSchedule={!!(wo.scheduledAt && wo.scheduledTimeSlot)}
           />
           <StartInspectionButton
             workOrderId={id}
