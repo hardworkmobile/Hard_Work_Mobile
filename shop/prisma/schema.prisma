@@ -170,7 +170,7 @@ model Invoice {
   squareOrderId    String?       // Square order ID tied to the payment link
   status          InvoiceStatus @default(DRAFT)
   subtotal        Float
-  taxRate         Float         @default(0.08)
+  taxRate         Float         @default(0.06) // PA sales tax
   taxAmount       Float
   total           Float
   dueDate         DateTime?

@@ -47,7 +47,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
   }
 
   const subtotal = wo.lineItems.reduce((s, i) => s + i.total, 0);
-  const taxRate = 0.08;
+  const taxRate = 0.06; // PA sales tax
   const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
   const total = Math.round((subtotal + taxAmount) * 100) / 100;
 

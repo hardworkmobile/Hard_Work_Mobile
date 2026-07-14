@@ -44,19 +44,19 @@ export default async function TestimonialsPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             {testimonials.map((t) => (
               <figure key={t.id} className="flex flex-col rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                <div className="flex items-center justify-between">
-                  <StarRating rating={t.rating} />
+                <figcaption className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-bold text-[#1e2833]">{t.authorName}</p>
+                    {t.serviceLabel && <p className="text-sm text-gray-500">{t.serviceLabel}</p>}
+                  </div>
                   {t.fromGoogle && (
-                    <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                    <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
                       Google Review
                     </span>
                   )}
-                </div>
-                <blockquote className="mt-3 flex-1 text-gray-700">“{t.quote}”</blockquote>
-                <figcaption className="mt-4">
-                  <p className="font-bold text-[#1e2833]">{t.authorName}</p>
-                  {t.serviceLabel && <p className="text-sm text-gray-500">{t.serviceLabel}</p>}
                 </figcaption>
+                <StarRating rating={t.rating} className="mt-2" />
+                <blockquote className="mt-3 flex-1 text-gray-700">“{t.quote}”</blockquote>
                 {t.adminReply && (
                   <div className="mt-4 rounded-lg bg-gray-50 p-3 text-sm ring-1 ring-gray-100">
                     <p className="font-semibold text-[#d4af37]">Hard Work Mobile replied:</p>
