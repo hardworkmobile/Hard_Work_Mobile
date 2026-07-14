@@ -41,7 +41,10 @@ export async function GET(req: NextRequest) {
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
       skip: (page - 1) * limit,
       take: limit,
-      include: { _count: { select: { vehicles: true, workOrders: true } } },
+      include: {
+        vehicles: { orderBy: { year: "desc" } },
+        _count: { select: { vehicles: true, workOrders: true } },
+      },
     }),
     prisma.customer.count({ where }),
   ]);
