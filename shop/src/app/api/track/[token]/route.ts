@@ -23,6 +23,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       lastLat: true,
       lastLng: true,
       lastLocationAt: true,
+      lastEtaMinutes: true,
     },
   });
   if (!wo || !wo.enRouteAt) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -48,5 +49,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
     dest,
     distanceMiles:
       mechanic && dest ? Math.round(haversineMiles(mechanic, dest) * 10) / 10 : null,
+    etaMinutes: wo.lastEtaMinutes,
   });
 }

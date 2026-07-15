@@ -11,6 +11,7 @@ type TrackData = {
   mechanic: { lat: number; lng: number; updatedAt: string | null } | null;
   dest: { lat: number; lng: number } | null;
   distanceMiles: number | null;
+  etaMinutes: number | null;
 };
 
 const POLL_MS = 8000;
@@ -145,17 +146,22 @@ export function TrackingView({ token }: { token: string }) {
     !data.mechanic?.updatedAt ||
     Date.now() - new Date(data.mechanic.updatedAt).getTime() > STALE_MS;
 
+  const statusLine = stale
+    ? "Waiting for a location signal…"
+    : data.etaMinutes != null
+      ? `About ${data.etaMinutes} min${data.etaMinutes === 1 ? "" : "s"} away · updates live`
+      : data.distanceMiles != null
+        ? `About ${data.distanceMiles} mi from you · updates live`
+        : "Location updating live";
+
   return (
     <Shell>
       <div className="mb-4 text-center">
         <h2 className="text-xl font-bold text-[#1e2833]">Your mechanic is on the way</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          {stale
-            ? "Waiting for a location signal…"
-            : data.distanceMiles != null
-              ? `About ${data.distanceMiles} mi from you · updates live`
-              : "Location updating live"}
-        </p>
+        <p className="mt-1 text-sm text-gray-500">{statusLine}</p>
+        {!stale && data.etaMinutes != null && data.distanceMiles != null && (
+          <p className="mt-0.5 text-xs text-gray-400">{data.distanceMiles} mi away (straight-line)</p>
+        )}
         {data.address && <p className="mt-1 text-xs text-gray-400">Heading to {data.address}</p>}
       </div>
       {(data.mechanic || data.dest) ? (

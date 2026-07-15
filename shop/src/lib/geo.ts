@@ -24,6 +24,47 @@ export async function geocodeAddress(address: string): Promise<{ lat: number; ln
   }
 }
 
+// Traffic-aware drive time via Google Routes API — reuses the Places API key
+// (Routes API must also be enabled on it in Google Cloud Console). Best
+// effort: returns null if the key isn't configured or the request fails, so
+// callers can fall back to straight-line distance.
+export async function getRoutedEtaMinutes(
+  origin: { lat: number; lng: number },
+  dest: { lat: number; lng: number }
+): Promise<number | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const res = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask": "routes.duration",
+      },
+      body: JSON.stringify({
+        origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
+        destination: { location: { latLng: { latitude: dest.lat, longitude: dest.lng } } },
+        travelMode: "DRIVE",
+        routingPreference: "TRAFFIC_AWARE",
+      }),
+    });
+    if (!res.ok) {
+      console.error("[geo] Routes API failed:", res.status, await res.text());
+      return null;
+    }
+    const data = (await res.json()) as { routes?: { duration?: string }[] };
+    const duration = data.routes?.[0]?.duration; // e.g. "823s"
+    if (!duration) return null;
+    const seconds = parseInt(duration.replace(/s$/, ""), 10);
+    return Number.isFinite(seconds) ? Math.round(seconds / 60) : null;
+  } catch (err) {
+    console.error("[geo] Routes API error:", err);
+    return null;
+  }
+}
+
 export function haversineMiles(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 3958.8; // Earth radius, miles
   const toRad = (d: number) => (d * Math.PI) / 180;

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { requireStaff } from "@/lib/require-staff";
+import { getRoutedEtaMinutes } from "@/lib/geo";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -19,14 +20,29 @@ export async function POST(req: NextRequest, { params }: Params) {
   const parsed = schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "Invalid coordinates" }, { status: 422 });
 
-  const updated = await prisma.workOrder
-    .update({
-      where: { id },
-      data: { lastLat: parsed.data.lat, lastLng: parsed.data.lng, lastLocationAt: new Date() },
-      select: { id: true },
-    })
-    .catch(() => null);
-  if (!updated) return NextResponse.json({ error: "Work order not found" }, { status: 404 });
+  const existing = await prisma.workOrder.findUnique({
+    where: { id },
+    select: { destLat: true, destLng: true },
+  });
+  if (!existing) return NextResponse.json({ error: "Work order not found" }, { status: 404 });
 
-  return NextResponse.json({ ok: true });
+  // Traffic-aware ETA, recomputed on each throttled ping (best-effort).
+  const etaMinutes =
+    existing.destLat != null && existing.destLng != null
+      ? await getRoutedEtaMinutes(parsed.data, { lat: existing.destLat, lng: existing.destLng })
+      : null;
+
+  await prisma.workOrder.update({
+    where: { id },
+    data: {
+      lastLat: parsed.data.lat,
+      lastLng: parsed.data.lng,
+      lastLocationAt: new Date(),
+      // Keep the last-known-good ETA on a transient routing failure rather
+      // than blanking it out.
+      ...(etaMinutes != null ? { lastEtaMinutes: etaMinutes } : {}),
+    },
+  });
+
+  return NextResponse.json({ ok: true, etaMinutes });
 }

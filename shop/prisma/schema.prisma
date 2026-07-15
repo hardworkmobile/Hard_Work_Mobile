@@ -113,6 +113,7 @@ model WorkOrder {
   lastLat        Float?    // mechanic's most recent GPS ping
   lastLng        Float?
   lastLocationAt DateTime?
+  lastEtaMinutes Int?      // traffic-aware drive time from last ping to destination
 
   startedAt       DateTime?
   completedAt     DateTime?
