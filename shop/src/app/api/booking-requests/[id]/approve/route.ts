@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { sendSms } from "@/lib/sms";
 import { slotWindow, createCalendarEvent } from "@/lib/google-calendar";
+import { buildIcs } from "@/lib/ics";
 import type { PreferredTimeSlot } from "@/generated/prisma";
 
 type Params = { params: Promise<{ id: string }> };
@@ -145,7 +146,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const pd = new Date(booking.preferredDate);
   const dateParts = { year: pd.getUTCFullYear(), month: pd.getUTCMonth() + 1, day: pd.getUTCDate() };
-  const { startUtc } = slotWindow(dateParts, booking.preferredTimeSlot);
+  const { startUtc, endUtc } = slotWindow(dateParts, booking.preferredTimeSlot);
 
   const workOrder = await prisma.workOrder.create({
     data: {
@@ -188,6 +189,17 @@ export async function POST(_req: NextRequest, { params }: Params) {
     });
   }
 
+  // Attach a .ics so the customer can add the appointment to their own
+  // calendar — Google blocks the service account from inviting them directly.
+  const ics = buildIcs({
+    uid: `${workOrder.id}@hardworkmobile.com`,
+    start: startUtc,
+    end: endUtc,
+    summary: `Hard Work Mobile — ${serviceLabel}`,
+    description: `Vehicle: ${booking.vehicleYear} ${booking.vehicleMake} ${booking.vehicleModel}\nWork Order: ${woNumber}\nQuestions? (484) 593-3875`,
+    location: booking.serviceAddress,
+  });
+
   void sendEmail({
     to: booking.email,
     subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
@@ -202,6 +214,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       preferredTimeSlot: booking.preferredTimeSlot,
       serviceAddress: booking.serviceAddress,
     }),
+    attachments: [{ filename: "appointment.ics", content: Buffer.from(ics).toString("base64") }],
   });
 
   return NextResponse.json({

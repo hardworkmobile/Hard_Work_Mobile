@@ -195,26 +195,41 @@ export async function getBusySlotsForDate(
   const dayEnd = nyLocalToUtc(date.year, date.month, date.day, 23, 59);
 
   try {
-    const res = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        timeMin: dayStart.toISOString(),
-        timeMax: dayEnd.toISOString(),
-        items: [{ id: calendarId }],
-      }),
+    // events.list rather than freeBusy: freeBusy can silently return no busy
+    // data for shared/secondary calendars (looks identical to "free"), while
+    // reading events uses the exact same access we already rely on to create
+    // them. singleEvents expands recurring events into concrete instances.
+    const params = new URLSearchParams({
+      timeMin: dayStart.toISOString(),
+      timeMax: dayEnd.toISOString(),
+      singleEvents: "true",
+      maxResults: "50",
     });
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
     if (!res.ok) {
-      console.error("[google-calendar] freeBusy failed:", res.status, await res.text());
+      console.error("[google-calendar] events.list failed:", res.status, await res.text());
       return null;
     }
     const data = (await res.json()) as {
-      calendars?: Record<string, { busy?: { start: string; end: string }[] }>;
+      items?: {
+        status?: string;
+        transparency?: string;
+        start?: { dateTime?: string; date?: string };
+        end?: { dateTime?: string; date?: string };
+      }[];
     };
-    const busyPeriods = (data.calendars?.[calendarId]?.busy ?? []).map((b) => ({
-      start: new Date(b.start),
-      end: new Date(b.end),
-    }));
+    const busyPeriods = (data.items ?? [])
+      // Skip cancelled events and ones marked "Free" (transparent) in Google Calendar.
+      .filter((e) => e.status !== "cancelled" && e.transparency !== "transparent")
+      .map((e) => ({
+        // All-day events carry `date` (no time) — treat as blocking the whole day.
+        start: new Date(e.start?.dateTime ?? (e.start?.date ? `${e.start.date}T00:00:00-05:00` : 0)),
+        end: new Date(e.end?.dateTime ?? (e.end?.date ? `${e.end.date}T00:00:00-05:00` : 0)),
+      }))
+      .filter((b) => !isNaN(b.start.getTime()) && !isNaN(b.end.getTime()) && b.end > b.start);
 
     const overlaps = (aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) => aStart < bEnd && bStart < aEnd;
 
