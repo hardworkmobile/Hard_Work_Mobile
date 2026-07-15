@@ -7,6 +7,7 @@ import { StatusChanger } from "@/components/work-orders/StatusChanger";
 import { LineItemsEditor } from "@/components/work-orders/LineItemsEditor";
 import { WorkOrderNotes } from "./WorkOrderNotes";
 import { StartInspectionButton } from "@/components/inspections/StartInspectionButton";
+import { EnRouteTracker } from "@/components/work-orders/EnRouteTracker";
 import { formatPhone } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -78,6 +79,13 @@ export default async function WorkOrderDetailPage({ params }: Params) {
           />
         </div>
       </div>
+
+      {/* En-route customer tracking — only meaningful for upcoming jobs */}
+      {wo.status === "SCHEDULED" && (
+        <div className="mb-6">
+          <EnRouteTracker workOrderId={id} alreadyEnRoute={!!wo.enRouteAt} />
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left: main content */}

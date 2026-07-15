@@ -111,7 +111,14 @@ export async function POST(_req: NextRequest, { params }: Params) {
         phone: booking.phone,
         address: booking.serviceAddress,
         notes: "Created from booking request form.",
+        smsOptIn: booking.smsOptIn,
       },
+    });
+  } else if (booking.smsOptIn && !customer.smsOptIn) {
+    // A fresh opt-in on the booking form upgrades the existing customer record.
+    customer = await prisma.customer.update({
+      where: { id: customer.id },
+      data: { smsOptIn: true },
     });
   }
 

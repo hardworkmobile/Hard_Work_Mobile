@@ -41,6 +41,7 @@ model Customer {
   zip         String?
   notes       String?
   squareId    String?  // Square customer ID for syncing
+  smsOptIn    Boolean  @default(false) // A2P consent, carried over from their booking request
 
   // Customer-portal login (null passwordHash = shop-created customer with no portal access yet)
   passwordHash         String?
@@ -103,6 +104,16 @@ model WorkOrder {
   scheduledAt       DateTime?
   scheduledTimeSlot PreferredTimeSlot? // which named slot this occupies, for calendar blocking
   googleEventId     String?         // Google Calendar event ID, once scheduled
+
+  // En-route customer tracking (Uber-style "on my way" link)
+  trackingToken  String?   @unique // unguessable id for the public /track/[token] page
+  enRouteAt      DateTime? // when the mechanic tapped "I'm En Route"
+  destLat        Float?    // geocoded serviceLocation
+  destLng        Float?
+  lastLat        Float?    // mechanic's most recent GPS ping
+  lastLng        Float?
+  lastLocationAt DateTime?
+
   startedAt       DateTime?
   completedAt     DateTime?
   mileageIn       Int?
