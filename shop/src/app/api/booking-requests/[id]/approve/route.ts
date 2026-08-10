@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
@@ -188,12 +188,13 @@ export async function POST(_req: NextRequest, { params }: Params) {
     data: { status: "CONVERTED", customerId: customer.id },
   });
 
-  // 6. Send confirmation SMS + email (fire-and-forget)
+  // 6. Send confirmation SMS + email. Scheduled with `after()` so the
+  // serverless function isn't frozen mid-send when the response returns.
   if (booking.smsOptIn) {
-    void sendSms({
+    after(() => sendSms({
       to: booking.phone,
       message: `Hi ${firstName}, your booking with Hard Work Mobile is confirmed! Work Order ${woNumber} for ${serviceLabel} on ${formatDate(booking.preferredDate)}. We'll call 30 min before arrival. Questions? (484) 593-3875`,
-    });
+    }));
   }
 
   // Attach a .ics so the customer can add the appointment to their own
@@ -207,7 +208,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
     location: booking.serviceAddress,
   });
 
-  void sendEmail({
+  after(() => sendEmail({
     to: booking.email,
     subject: `Your Service Appointment is Confirmed — Hard Work Mobile`,
     html: approvalEmailHtml({
@@ -222,7 +223,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       serviceAddress: booking.serviceAddress,
     }),
     attachments: [{ filename: "appointment.ics", content: Buffer.from(ics).toString("base64") }],
-  });
+  }));
 
   return NextResponse.json({
     workOrderId: workOrder.id,

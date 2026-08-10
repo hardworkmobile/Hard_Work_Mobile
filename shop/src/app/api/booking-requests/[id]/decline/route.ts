@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
@@ -67,18 +67,20 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const service =
     booking.service === "Other" ? booking.serviceOther ?? "service" : booking.service;
 
+  // Scheduled with `after()` so the send isn't cut off when the serverless
+  // function freezes on response.
   if (booking.smsOptIn) {
-    void sendSms({
+    after(() => sendSms({
       to: booking.phone,
       message: `Hi ${firstName}, thanks for reaching out to Hard Work Mobile. Unfortunately, we can't accommodate your ${service} request on ${formatDate(booking.preferredDate)}. We'd love to find another time — give us a call at (484) 593-3875.`,
-    });
+    }));
   }
 
-  void sendEmail({
+  after(() => sendEmail({
     to: booking.email,
     subject: "Regarding Your Booking Request — Hard Work Mobile",
     html: declineEmailHtml(firstName, service, booking.preferredDate),
-  });
+  }));
 
   return NextResponse.json({ ok: true });
 }

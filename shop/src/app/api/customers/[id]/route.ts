@@ -57,9 +57,27 @@ export async function PUT(req: NextRequest, { params }: Params) {
     );
   }
 
+  // Same unique-email guard as create — report the clash instead of throwing.
+  const email = result.data.email || null;
+  if (email) {
+    const clash = await prisma.customer.findUnique({
+      where: { email },
+      select: { id: true, firstName: true, lastName: true },
+    });
+    if (clash && clash.id !== id) {
+      return NextResponse.json(
+        {
+          error: `${clash.firstName} ${clash.lastName} already uses ${email}.`,
+          existingCustomerId: clash.id,
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   const customer = await prisma.customer.update({
     where: { id },
-    data: result.data,
+    data: { ...result.data, ...(result.data.email !== undefined ? { email } : {}) },
   });
 
   return NextResponse.json(customer);

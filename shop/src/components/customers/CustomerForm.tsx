@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +32,7 @@ interface CustomerFormProps {
 export function CustomerForm({ customerId, defaultValues }: CustomerFormProps) {
   const router = useRouter();
   const isEditing = !!customerId;
+  const [saveError, setSaveError] = useState<{ message: string; existingCustomerId?: string } | null>(null);
 
   const {
     register,
@@ -43,6 +46,7 @@ export function CustomerForm({ customerId, defaultValues }: CustomerFormProps) {
   async function onSubmit(data: FormValues) {
     const url = isEditing ? `/api/customers/${customerId}` : "/api/customers";
     const method = isEditing ? "PUT" : "POST";
+    setSaveError(null);
 
     const res = await fetch(url, {
       method,
@@ -51,7 +55,11 @@ export function CustomerForm({ customerId, defaultValues }: CustomerFormProps) {
     });
 
     if (!res.ok) {
-      alert("Failed to save customer. Please try again.");
+      const body = await res.json().catch(() => ({}));
+      setSaveError({
+        message: body.error ?? `Couldn't save customer (error ${res.status}).`,
+        existingCustomerId: body.existingCustomerId,
+      });
       return;
     }
 
@@ -127,6 +135,20 @@ export function CustomerForm({ customerId, defaultValues }: CustomerFormProps) {
           rows={3}
         />
       </div>
+
+      {saveError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p>{saveError.message}</p>
+          {saveError.existingCustomerId && (
+            <Link
+              href={`/customers/${saveError.existingCustomerId}`}
+              className="mt-1 inline-block font-semibold underline hover:text-red-800"
+            >
+              Open that customer →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center gap-3 border-t border-gray-200 pt-4">

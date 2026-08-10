@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { squareClient, squareLocationId } from "@/lib/square";
@@ -108,8 +108,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
             month: "long", day: "numeric", year: "numeric",
           })
         : null;
-      void sendEmail({
-        to: invoice.customer.email,
+      // `after()` keeps the invocation alive until the send completes.
+      after(() => sendEmail({
+        to: invoice.customer.email!,
         subject: `Invoice ${invoice.number} from Hard Work Mobile — $${invoice.total.toFixed(2)}`,
         html: brandedEmail(
           `Hi ${invoice.customer.firstName},`,
@@ -123,7 +124,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
            <a href="${paymentUrl}" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">Pay Invoice Online</a>
            <p style="color:#475569;margin-top:24px;">Questions about this invoice? Give us a call at <a href="tel:4845933875" style="color:#1e2833;font-weight:600;">(484) 593-3875</a>.</p>`
         ),
-      });
+      }));
     }
 
     return NextResponse.json({ invoice: updated, paymentUrl });

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -62,7 +62,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     // Email the customer their appointment with a .ics attachment — Google
     // blocks the service account from inviting them directly (non-Workspace).
     if (existing.customer.email) {
-      const { startUtc, endUtc } = slotWindow(dateParts, existing.scheduledTimeSlot);
+      // Capture the narrowed slot — TS widens it back to nullable inside the
+      // deferred after() callback.
+      const slot = existing.scheduledTimeSlot;
+      const { startUtc, endUtc } = slotWindow(dateParts, slot);
       const dateStr = startUtc.toLocaleDateString("en-US", {
         weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "America/New_York",
       });
@@ -74,8 +77,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         description: `Vehicle: ${existing.vehicle.year} ${existing.vehicle.make} ${existing.vehicle.model}\nWork Order: ${existing.number}\nQuestions? (484) 593-3875`,
         location: existing.serviceLocation ?? undefined,
       });
-      void sendEmail({
-        to: existing.customer.email,
+      after(() => sendEmail({
+        to: existing.customer.email!,
         subject: "Your Service Appointment is Scheduled — Hard Work Mobile",
         html: brandedEmail(
           `You're on the schedule, ${existing.customer.firstName}!`,
@@ -84,14 +87,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
              <tr><td style="padding:8px 0;color:#94a3b8;width:120px;">Service</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${existing.description}</td></tr>
              <tr><td style="padding:8px 0;color:#94a3b8;">Vehicle</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${existing.vehicle.year} ${existing.vehicle.make} ${existing.vehicle.model}</td></tr>
              <tr><td style="padding:8px 0;color:#94a3b8;">Date</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${dateStr}</td></tr>
-             <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${SLOT_LABELS[existing.scheduledTimeSlot]}</td></tr>
+             <tr><td style="padding:8px 0;color:#94a3b8;">Time</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${SLOT_LABELS[slot]}</td></tr>
              ${existing.serviceLocation ? `<tr><td style="padding:8px 0;color:#94a3b8;">Location</td><td style="padding:8px 0;color:#1e2833;font-weight:600;">${existing.serviceLocation}</td></tr>` : ""}
            </table>
            <p style="color:#475569;">We'll call or text 30 minutes before arrival. Questions or need to reschedule?</p>
            <a href="tel:4845933875" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">(484) 593-3875</a>`
         ),
         attachments: [{ filename: "appointment.ics", content: Buffer.from(ics).toString("base64") }],
-      });
+      }));
     }
   }
 

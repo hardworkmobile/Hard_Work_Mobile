@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { prisma } from "@/lib/db";
 import { makeResetToken } from "@/lib/customer-auth";
 import { sendEmail, brandedEmail, appUrl } from "@/lib/email";
@@ -20,10 +21,11 @@ export async function forgotPasswordAction(_: unknown, formData: FormData): Prom
     });
     const link = `${appUrl()}/portal/reset-password/${raw}`;
     if (customer.phone) {
-      void sendSms({
+      // `after()` so the send isn't dropped when the function freezes.
+      after(() => sendSms({
         to: customer.phone,
         message: `Hard Work Mobile: Use this link to reset your password (valid 1 hour): ${link}`,
-      });
+      }));
     }
     await sendEmail({
       to: email,

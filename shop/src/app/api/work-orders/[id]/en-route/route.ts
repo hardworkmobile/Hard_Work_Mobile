@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { randomUUID } from "crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -44,16 +44,17 @@ export async function POST(_req: NextRequest, { params }: Params) {
   const trackUrl = `${appUrl()}/track/${trackingToken}`;
   const firstName = wo.customer.firstName;
 
+  // `after()` keeps the serverless invocation alive until these settle.
   if (wo.customer.smsOptIn && wo.customer.phone) {
-    void sendSms({
+    after(() => sendSms({
       to: wo.customer.phone,
       message: `Hi ${firstName}, your Hard Work Mobile mechanic is on the way! Track our arrival live: ${trackUrl}\n\nReply STOP to opt out`,
-    });
+    }));
   }
 
   if (wo.customer.email) {
-    void sendEmail({
-      to: wo.customer.email,
+    after(() => sendEmail({
+      to: wo.customer.email!,
       subject: "Your Mechanic Is On the Way — Hard Work Mobile",
       html: brandedEmail(
         `We're on the way, ${firstName}!`,
@@ -61,7 +62,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
          <a href="${trackUrl}" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">Track Your Mechanic</a>
          <p style="color:#475569;margin-top:24px;">Questions? Call or text <a href="tel:4845933875" style="color:#1e2833;font-weight:600;">(484) 593-3875</a>.</p>`
       ),
-    });
+    }));
   }
 
   return NextResponse.json({

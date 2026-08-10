@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -99,22 +99,28 @@ export async function POST(req: NextRequest) {
   const timeSlotLabel = { morning: "Morning (8 AM – 12 PM)", afternoon: "Afternoon (12 PM – 5 PM)", evening: "Evening (5 PM – 7 PM)" }[d.preferredTimeSlot] ?? d.preferredTimeSlot;
   const firstName = d.name.split(" ")[0] ?? d.name;
 
+  // NOTE: notifications go through `after()` rather than a bare floating
+  // promise. On Vercel the serverless function can freeze the moment the
+  // response is returned, killing in-flight requests to Twilio/Resend — which
+  // showed up as SMS and email arriving only sometimes. `after()` extends the
+  // invocation (waitUntil) until these settle.
+
   // SMS confirmation to the customer (only if they opted in)
   if (d.smsOptIn) {
-    void sendSms({
+    after(() => sendSms({
       to: d.phone,
       message: `Hi ${firstName}, Hard Work Mobile received your booking request for ${serviceName} on ${dateStr}. We'll call or text within a few hours to confirm. Questions? (484) 593-3875\n\nReply STOP to opt out`,
-    });
+    }));
   }
 
   // SMS notification to the shop owner
-  void sendSms({
+  after(() => sendSms({
     to: process.env.OWNER_PHONE ?? "",
     message: `New booking: ${d.name} — ${serviceName}, ${d.vehicleYear} ${d.vehicleMake} ${d.vehicleModel}, ${dateStr} ${timeSlotLabel}. Phone: ${d.phone}`,
-  });
+  }));
 
   // Email confirmation to the customer
-  void sendEmail({
+  after(() => sendEmail({
     to: d.email,
     subject: "We Got Your Request — Hard Work Mobile",
     html: brandedEmail(
@@ -130,11 +136,11 @@ export async function POST(req: NextRequest) {
        <p style="color:#475569;">We'll usually call or text within a few hours to confirm your appointment. If you need to reach us sooner:</p>
        <a href="tel:4845933875" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">(484) 593-3875</a>`
     ),
-  });
+  }));
 
   // Notification to the shop owner
   const ownerEmail = process.env.RESEND_REPLY_TO ?? "JamesFerzanden@hardworkmobile.com";
-  void sendEmail({
+  after(() => sendEmail({
     to: ownerEmail,
     subject: `New Booking Request — ${firstName} · ${serviceName}`,
     html: brandedEmail(
@@ -156,7 +162,7 @@ export async function POST(req: NextRequest) {
        </div>` : ""}
        <a href="${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/booking-requests" style="display:inline-block;background:#d4af37;color:#1e2833;font-weight:700;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:16px;">View in Admin →</a>`
     ),
-  });
+  }));
 
   return NextResponse.json({ id: created.id }, { status: 201 });
 }

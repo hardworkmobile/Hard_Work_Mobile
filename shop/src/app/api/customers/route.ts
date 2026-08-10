@@ -66,11 +66,29 @@ export async function POST(req: NextRequest) {
   }
 
   const data = result.data;
+  const email = data.email || null;
+
+  // Customer.email is unique — reusing one already on file (easy to do when a
+  // customer books again) previously threw an unhandled P2002 and surfaced as
+  // a generic "failed to save". Report it in a way the form can show.
+  if (email) {
+    const clash = await prisma.customer.findUnique({
+      where: { email },
+      select: { id: true, firstName: true, lastName: true },
+    });
+    if (clash) {
+      return NextResponse.json(
+        {
+          error: `${clash.firstName} ${clash.lastName} already uses ${email}. Open their record instead, or leave the email blank.`,
+          existingCustomerId: clash.id,
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   const customer = await prisma.customer.create({
-    data: {
-      ...data,
-      email: data.email || null,
-    },
+    data: { ...data, email },
   });
 
   return NextResponse.json(customer, { status: 201 });
