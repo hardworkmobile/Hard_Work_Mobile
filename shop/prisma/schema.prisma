@@ -129,6 +129,7 @@ model WorkOrder {
   lineItems  LineItem[]
   invoice    Invoice?
   inspection Inspection?
+  photos     WorkOrderPhoto[]
 
   @@index([customerId])
   @@index([vehicleId])
@@ -144,6 +145,23 @@ enum WorkOrderStatus {
   INVOICED
   PAID
   CANCELLED
+}
+
+// Photos taken against the job itself (e.g. completed work), as opposed to
+// InspectionPhoto which hangs off a specific inspection checklist item.
+// Both can be texted to the customer via MMS.
+model WorkOrderPhoto {
+  id          String   @id @default(cuid())
+  workOrderId String
+  url         String
+  storageKey  String
+  caption     String?
+  sentAt      DateTime? // last time this photo was sent to the customer
+  createdAt   DateTime @default(now())
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId])
 }
 
 // ─── Line Items ───────────────────────────────────────────────────────────────

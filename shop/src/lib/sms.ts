@@ -1,17 +1,33 @@
-// Twilio SMS — best-effort, no-ops if credentials aren't configured.
-export async function sendSms(opts: { to: string; message: string }) {
+// Twilio's Messages endpoint sends both SMS and MMS — attaching `mediaUrls`
+// (publicly reachable image URLs) turns the message into an MMS. Twilio caps
+// this at 10 media per message and MMS delivery is US/Canada only.
+export const MAX_MMS_MEDIA = 10;
+
+// Best-effort, no-ops if credentials aren't configured. Returns whether the
+// send was accepted, so callers can report accurately instead of guessing.
+export async function sendSms(opts: {
+  to: string;
+  message: string;
+  mediaUrls?: string[];
+}): Promise<{ ok: boolean; error?: string }> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_PHONE_NUMBER;
   if (!accountSid || !authToken || !from) {
-    console.warn("[sms] Twilio credentials not set — skipping SMS to", opts.to);
-    return;
+    console.warn("[sms] Twilio credentials not set — skipping send to", opts.to);
+    return { ok: false, error: "Twilio is not configured." };
   }
 
   const e164 = toE164(opts.to);
   if (!e164) {
     console.warn("[sms] could not convert to E.164:", opts.to);
-    return;
+    return { ok: false, error: `"${opts.to}" isn't a valid US phone number.` };
+  }
+
+  const body = new URLSearchParams({ To: e164, From: from, Body: opts.message });
+  // MediaUrl is a repeated form field, one per attachment.
+  for (const mediaUrl of (opts.mediaUrls ?? []).slice(0, MAX_MMS_MEDIA)) {
+    body.append("MediaUrl", mediaUrl);
   }
 
   try {
@@ -22,14 +38,25 @@ export async function sendSms(opts: { to: string; message: string }) {
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: "Basic " + btoa(`${accountSid}:${authToken}`),
       },
-      body: new URLSearchParams({ To: e164, From: from, Body: opts.message }),
+      body,
     });
     if (!res.ok) {
-      const body = await res.text();
-      console.error("[sms] Twilio send failed:", res.status, body);
+      const text = await res.text();
+      console.error("[sms] Twilio send failed:", res.status, text);
+      // Twilio returns a JSON body with a human-readable `message`.
+      let detail = `Twilio error ${res.status}`;
+      try {
+        const parsed = JSON.parse(text) as { message?: string };
+        if (parsed.message) detail = parsed.message;
+      } catch {
+        /* keep the status-code fallback */
+      }
+      return { ok: false, error: detail };
     }
+    return { ok: true };
   } catch (err) {
     console.error("[sms] Twilio send failed:", err);
+    return { ok: false, error: err instanceof Error ? err.message : "Send failed." };
   }
 }
 

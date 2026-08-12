@@ -8,6 +8,7 @@ import { LineItemsEditor } from "@/components/work-orders/LineItemsEditor";
 import { WorkOrderNotes } from "./WorkOrderNotes";
 import { StartInspectionButton } from "@/components/inspections/StartInspectionButton";
 import { EnRouteTracker } from "@/components/work-orders/EnRouteTracker";
+import { PhotoMessenger } from "@/components/work-orders/PhotoMessenger";
 import { formatPhone } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -30,13 +31,30 @@ export default async function WorkOrderDetailPage({ params }: Params) {
       vehicle: true,
       lineItems: { orderBy: [{ type: "asc" }, { createdAt: "asc" }] },
       invoice: { select: { id: true, status: true, total: true } },
-      inspection: { select: { id: true } },
+      photos: { orderBy: { createdAt: "asc" } },
+      inspection: {
+        select: {
+          id: true,
+          items: {
+            where: { photos: { some: {} } },
+            select: { name: true, photos: { select: { id: true, url: true } } },
+          },
+        },
+      },
     },
   });
 
   if (!wo) notFound();
 
   const editable = EDITABLE_STATUSES.has(wo.status);
+
+  // Both job photos and inspection photos can be texted to the customer.
+  const sendablePhotos = [
+    ...wo.photos.map((p) => ({ id: p.id, url: p.url, source: "job" as const })),
+    ...(wo.inspection?.items.flatMap((item) =>
+      item.photos.map((p) => ({ id: p.id, url: p.url, label: item.name, source: "inspection" as const }))
+    ) ?? []),
+  ];
 
   return (
     <div className="p-8 max-w-4xl">
@@ -115,6 +133,15 @@ export default async function WorkOrderDetailPage({ params }: Params) {
               editable={editable}
             />
           </section>
+
+          {/* Photos to text/email the customer */}
+          <PhotoMessenger
+            workOrderId={id}
+            initialPhotos={sendablePhotos}
+            customerFirstName={wo.customer.firstName}
+            smsOptIn={wo.customer.smsOptIn}
+            hasEmail={!!wo.customer.email}
+          />
 
           {/* Invoice link */}
           {wo.invoice && (
