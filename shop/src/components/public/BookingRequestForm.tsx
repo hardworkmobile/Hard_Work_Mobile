@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CONVERSIONS, reportConversion } from "@/lib/analytics";
 
 const VEHICLE_MAKES = [
   "Acura", "Alfa Romeo", "Audi", "BMW", "Buick", "Cadillac", "Chevrolet",
@@ -114,6 +115,8 @@ export default function BookingRequestForm({ defaultService = "", source = "cont
       if (!res.ok) throw new Error("request failed");
       setStatus({ submitted: true, error: false, message: "" });
       setForm(initial);
+      // Report the lead only on a confirmed submission — never on failure.
+      reportConversion(CONVERSIONS.bookingRequest);
     } catch {
       setStatus({
         submitted: true,

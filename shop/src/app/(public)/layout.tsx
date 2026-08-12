@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { SiteFooter } from "@/components/public/SiteFooter";
+import { GoogleAds } from "@/components/public/GoogleAds";
 
 export const metadata: Metadata = {
   title: "Hard Work Mobile — Mobile Mechanic in Southeast PA",
@@ -17,6 +18,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
       />
+      <GoogleAds />
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
