@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Check, X, Phone, Mail, MapPin, Car, Wrench, Calendar, Clock, Inbox, RefreshCw, ExternalLink } from "lucide-react";
+import { Check, X, Phone, Mail, MapPin, Car, Wrench, Calendar, Clock, Inbox, RefreshCw, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { BookingRequestEditForm, type EditableBooking } from "./BookingRequestEditForm";
 
 type BookingRequest = {
   id: string;
@@ -14,8 +15,8 @@ type BookingRequest = {
   vehicleMake: string;
   vehicleModel: string;
   service: string;
-  serviceOther?: string;
-  issueDetails?: string;
+  serviceOther?: string | null;
+  issueDetails?: string | null;
   preferredDate: string;
   preferredTimeSlot: "MORNING" | "AFTERNOON" | "EVENING";
   serviceAddress: string;
@@ -71,6 +72,7 @@ export function BookingRequestsClient() {
   const [pending, setPending] = useState<{ id: string; type: "approve" | "decline" } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<ActionResult>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -110,6 +112,28 @@ export function BookingRequestsClient() {
       await fetchRequests();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  function handleEditSaved(updated: EditableBooking) {
+    setRequests((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)));
+    setEditingId(null);
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Permanently delete this declined booking? This can't be undone.")) return;
+    setActionLoading(id);
+    try {
+      const res = await fetch(`/api/booking-requests/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Delete failed");
+      }
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setActionLoading(null);
     }
@@ -231,93 +255,117 @@ export function BookingRequestsClient() {
                     </span>
                   </div>
 
-                  {/* Contact links */}
-                  <div className="flex gap-3 mb-3">
-                    <a href={`tel:${r.phone}`} className="flex items-center gap-1 text-sm text-blue-600">
-                      <Phone className="h-3.5 w-3.5" />{r.phone}
-                    </a>
-                    <a href={`mailto:${r.email}`} className="flex items-center gap-1 text-sm text-blue-600 truncate">
-                      <Mail className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{r.email}</span>
-                    </a>
-                  </div>
+                  {editingId === r.id ? (
+                    <BookingRequestEditForm booking={r} onSaved={handleEditSaved} onCancel={() => setEditingId(null)} />
+                  ) : (
+                    <>
+                      {/* Contact links */}
+                      <div className="flex gap-3 mb-3">
+                        <a href={`tel:${r.phone}`} className="flex items-center gap-1 text-sm text-blue-600">
+                          <Phone className="h-3.5 w-3.5" />{r.phone}
+                        </a>
+                        <a href={`mailto:${r.email}`} className="flex items-center gap-1 text-sm text-blue-600 truncate">
+                          <Mail className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{r.email}</span>
+                        </a>
+                      </div>
 
-                  {/* Details */}
-                  <div className="space-y-1.5 text-sm text-gray-700">
-                    <div className="flex items-center gap-1.5">
-                      <Car className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                      {r.vehicleYear} {r.vehicleMake} {r.vehicleModel}
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <Wrench className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
-                      <span>{serviceLabel}</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
-                      <span>{r.serviceAddress}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                      {formatShortDate(r.preferredDate)}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                      {TIME_SLOT_LABELS[r.preferredTimeSlot] ?? r.preferredTimeSlot}
-                    </div>
-                  </div>
-
-                  {r.issueDetails && (
-                    <div className="mt-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 whitespace-pre-wrap">
-                      {r.issueDetails}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  {r.status === "NEW" && !isLoading && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      {isPending ? (
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-500">
-                            {pending.type === "approve"
-                              ? "Create work order & notify customer?"
-                              : "Decline and notify customer?"}
-                          </p>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleAction(r.id, pending.type)}
-                              className={cn(
-                                "flex-1 rounded-md px-3 py-2 text-sm font-semibold text-white",
-                                pending.type === "approve"
-                                  ? "bg-green-600 hover:bg-green-700"
-                                  : "bg-red-600 hover:bg-red-700"
-                              )}
-                            >
-                              Confirm
-                            </button>
-                            <button
-                              onClick={() => setPending(null)}
-                              className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                      {/* Details */}
+                      <div className="space-y-1.5 text-sm text-gray-700">
+                        <div className="flex items-center gap-1.5">
+                          <Car className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          {r.vehicleYear} {r.vehicleMake} {r.vehicleModel}
                         </div>
-                      ) : (
-                        <div className="flex gap-2">
+                        <div className="flex items-start gap-1.5">
+                          <Wrench className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                          <span>{serviceLabel}</span>
+                        </div>
+                        <div className="flex items-start gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
+                          <span>{r.serviceAddress}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          {formatShortDate(r.preferredDate)}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                          {TIME_SLOT_LABELS[r.preferredTimeSlot] ?? r.preferredTimeSlot}
+                        </div>
+                      </div>
+
+                      {r.issueDetails && (
+                        <div className="mt-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 whitespace-pre-wrap">
+                          {r.issueDetails}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      {r.status === "NEW" && !isLoading && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          {isPending ? (
+                            <div className="space-y-2">
+                              <p className="text-xs text-gray-500">
+                                {pending.type === "approve"
+                                  ? "Create work order & notify customer?"
+                                  : "Decline and notify customer?"}
+                              </p>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleAction(r.id, pending.type)}
+                                  className={cn(
+                                    "flex-1 rounded-md px-3 py-2 text-sm font-semibold text-white",
+                                    pending.type === "approve"
+                                      ? "bg-green-600 hover:bg-green-700"
+                                      : "bg-red-600 hover:bg-red-700"
+                                  )}
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => setPending(null)}
+                                  className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setPending({ id: r.id, type: "approve" })}
+                                className="flex-1 flex items-center justify-center gap-1 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-100"
+                              >
+                                <Check className="h-4 w-4" /> Approve
+                              </button>
+                              <button
+                                onClick={() => setPending({ id: r.id, type: "decline" })}
+                                className="flex-1 flex items-center justify-center gap-1 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+                              >
+                                <X className="h-4 w-4" /> Decline
+                              </button>
+                              <button
+                                onClick={() => setEditingId(r.id)}
+                                className="flex items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+                                aria-label="Edit booking"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {r.status === "DECLINED" && !isLoading && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
                           <button
-                            onClick={() => setPending({ id: r.id, type: "approve" })}
-                            className="flex-1 flex items-center justify-center gap-1 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-100"
+                            onClick={() => handleDelete(r.id)}
+                            className="flex w-full items-center justify-center gap-1 rounded-md bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-red-50 hover:text-red-700"
                           >
-                            <Check className="h-4 w-4" /> Approve
-                          </button>
-                          <button
-                            onClick={() => setPending({ id: r.id, type: "decline" })}
-                            className="flex-1 flex items-center justify-center gap-1 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
-                          >
-                            <X className="h-4 w-4" /> Decline
+                            <Trash2 className="h-4 w-4" /> Delete
                           </button>
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               );
@@ -343,6 +391,16 @@ export function BookingRequestsClient() {
                   const isLoading = actionLoading === r.id;
                   const serviceLabel =
                     r.service === "Other" ? r.serviceOther || "Other" : r.service;
+
+                  if (editingId === r.id) {
+                    return (
+                      <tr key={r.id}>
+                        <td colSpan={6} className="px-4 py-4 bg-gray-50">
+                          <BookingRequestEditForm booking={r} onSaved={handleEditSaved} onCancel={() => setEditingId(null)} />
+                        </td>
+                      </tr>
+                    );
+                  }
 
                   return (
                     <tr key={r.id} className={cn("transition-colors", isLoading ? "opacity-60" : "hover:bg-gray-50")}>
@@ -443,8 +501,22 @@ export function BookingRequestsClient() {
                               >
                                 <X className="h-3.5 w-3.5" /> Decline
                               </button>
+                              <button
+                                onClick={() => setEditingId(r.id)}
+                                className="flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                                aria-label="Edit booking"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
                             </div>
                           )
+                        ) : r.status === "DECLINED" ? (
+                          <button
+                            onClick={() => handleDelete(r.id)}
+                            className="flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold text-gray-500 hover:bg-red-50 hover:text-red-700 transition-colors ml-auto"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </button>
                         ) : null}
                       </td>
                     </tr>

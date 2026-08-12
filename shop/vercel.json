@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/mark-overdue",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-declined-bookings",
+      "schedule": "0 9 * * *"
     }
   ]
 }
