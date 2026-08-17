@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Blog — Hard Work Mobile",
   description: "Car care tips, maintenance advice, and news from Hard Work Mobile.",
-};
+  path: "/blog",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -43,8 +46,9 @@ export default async function BlogIndexPage() {
                 className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg"
               >
                 {p.heroImage && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.heroImage} alt={p.title} className="h-44 w-full object-cover" />
+                  <div className="relative h-44 w-full">
+                    <Image src={p.heroImage} alt={p.title} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" />
+                  </div>
                 )}
                 <div className="p-5">
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#d4af37]">

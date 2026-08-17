@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Icon } from "@/components/public/Icon";
 import { SERVICES, PHONE, PHONE_HREF } from "@/lib/marketing";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Services — Hard Work Mobile",
   description: "On-site auto repair services across Southeast PA: diagnostics, brakes, engine, suspension, electrical, and scheduled maintenance.",
-};
+  path: "/services",
+});
 
 export default function ServicesPage() {
   return (
@@ -28,7 +31,7 @@ export default function ServicesPage() {
               href={`/services/${s.slug}`}
               className="group rounded-xl border-l-4 border-[#d4af37] bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg"
             >
-              <i className={`${s.icon} text-2xl text-[#d4af37]`} />
+              <Icon icon={s.icon} className="h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">{s.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{s.desc}</p>
               <span className="mt-3 inline-block text-sm font-bold text-[#d4af37]">Learn More →</span>
@@ -40,7 +43,7 @@ export default function ServicesPage() {
           <h2 className="text-xl font-bold text-[#1e2833]">Don&apos;t see what you need?</h2>
           <p className="mt-2 text-gray-600">We handle most repairs. Give us a call and we&apos;ll let you know.</p>
           <a href={PHONE_HREF} className="mt-5 inline-block rounded-lg bg-[#d4af37] px-6 py-3 font-bold text-[#1e2833] transition-colors hover:bg-[#c9a42e]">
-            <i className="fa-solid fa-phone mr-2" />{PHONE}
+            <Icon icon="fa-solid fa-phone" className="mr-2 inline h-4 w-4" />{PHONE}
           </a>
         </div>
       </section>

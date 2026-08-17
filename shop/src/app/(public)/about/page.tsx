@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { StarRating } from "@/components/public/StarRating";
+import { Icon } from "@/components/public/Icon";
 import { SERVICES, PHONE, PHONE_HREF } from "@/lib/marketing";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "About — Hard Work Mobile",
   description:
     "Hard Work Mobile is a mobile mechanic serving Chester, Delaware & Montgomery Counties, PA — honest diagnoses, fair pricing, and quality repairs at your location.",
-};
+  path: "/about",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +32,8 @@ export default async function AboutPage() {
   return (
     <>
       {/* Hero */}
-      <section
-        className="relative bg-[#1e2833] bg-cover bg-center text-white"
-        style={{ backgroundImage: "url(/images/about-hero-image.jpg)" }}
-      >
+      <section className="relative overflow-hidden bg-[#1e2833] text-white">
+        <Image src="/images/about-hero-image.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#12181f]/80" />
         <div className="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 sm:py-28">
           <span className="inline-block rounded-full bg-[#d4af37] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#1e2833]">
@@ -43,14 +45,13 @@ export default async function AboutPage() {
           <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-300">
             How fortuitous, then, that I shall stop at nothing to deliver it for my clients.
           </p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/signature.png" alt="James Ferzanden signature" className="mx-auto mt-6 h-16 w-auto opacity-90" />
+          <Image src="/images/signature.png" alt="James Ferzanden signature" width={240} height={64} className="mx-auto mt-6 h-16 w-auto opacity-90" />
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/contact" className="rounded-lg bg-[#d4af37] px-6 py-3 font-bold text-[#1e2833] transition-colors hover:bg-[#c9a42e]">
               Get a Free Quote
             </Link>
             <a href={PHONE_HREF} className="rounded-lg border-2 border-white/40 px-6 py-3 font-semibold text-white transition-colors hover:border-[#d4af37] hover:text-[#d4af37]">
-              <i className="fa-solid fa-phone mr-2" />{PHONE}
+              <Icon icon="fa-solid fa-phone" className="mr-2 inline h-4 w-4" />{PHONE}
             </a>
           </div>
         </div>
@@ -59,10 +60,9 @@ export default async function AboutPage() {
       {/* Trust bar */}
       <div className="bg-[#d4af37]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-2 px-4 py-3.5 text-sm font-bold text-[#1e2833]">
-          <span><i className="fa-solid fa-wrench mr-2" />Mobile Auto Repair</span>
-          <span><i className="fa-solid fa-certificate mr-2" />Certified Technician</span>
-          <span><i className="fa-solid fa-comment-dollar mr-2" />Honest Pricing</span>
-          <span><i className="fa-solid fa-map-location-dot mr-2" />Chester, Delaware &amp; Montgomery Co.</span>
+          <span><Icon icon="fa-solid fa-wrench" className="mr-2 inline h-4 w-4" />Mobile Auto Repair</span>
+          <span><Icon icon="fa-solid fa-comment-dollar" className="mr-2 inline h-4 w-4" />Honest Pricing</span>
+          <span><Icon icon="fa-solid fa-map-location-dot" className="mr-2 inline h-4 w-4" />Chester, Delaware &amp; Montgomery Co.</span>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export default async function AboutPage() {
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {VALUES.map((v) => (
             <div key={v.title} className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-              <i className={`${v.icon} text-2xl text-[#d4af37]`} />
+              <Icon icon={v.icon} className="mx-auto h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">{v.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{v.body}</p>
             </div>
@@ -84,10 +84,8 @@ export default async function AboutPage() {
       </section>
 
       {/* Mission */}
-      <section
-        className="relative bg-[#1e2833] bg-cover bg-center text-white"
-        style={{ backgroundImage: "url(/images/mission-bg.jpeg)" }}
-      >
+      <section className="relative overflow-hidden bg-[#1e2833] text-white">
+        <Image src="/images/mission-bg.jpeg" alt="" fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#0a2540]/85" />
         <div className="relative mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
           <span className="inline-block rounded-full bg-white/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#d4af37]">
@@ -129,31 +127,31 @@ export default async function AboutPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-              <i className="fa-solid fa-phone text-2xl text-[#d4af37]" />
+              <Icon icon="fa-solid fa-phone" className="mx-auto h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">Call or Text</h3>
               <p className="mt-1 text-sm text-gray-600">{PHONE}</p>
               <a href={PHONE_HREF} className="mt-2 inline-block text-sm font-bold text-[#d4af37] hover:underline">Call now</a>
             </div>
             <div className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-              <i className="fa-solid fa-envelope text-2xl text-[#d4af37]" />
+              <Icon icon="fa-solid fa-envelope" className="mx-auto h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">Email</h3>
               <p className="mt-1 break-words text-sm text-gray-600">JamesFerzanden@hardworkmobile.com</p>
               <a href="mailto:JamesFerzanden@hardworkmobile.com" className="mt-2 inline-block text-sm font-bold text-[#d4af37] hover:underline">Send email</a>
             </div>
             <div className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-              <i className="fa-solid fa-clock text-2xl text-[#d4af37]" />
+              <Icon icon="fa-solid fa-clock" className="mx-auto h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">Hours</h3>
               <p className="mt-1 text-sm text-gray-600">Monday – Friday</p>
               <p className="text-sm text-gray-600">8:00 AM – 6:00 PM</p>
             </div>
             <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-              <i className="fa-solid fa-list-check text-2xl text-[#d4af37]" />
+              <Icon icon="fa-solid fa-list-check" className="mx-auto h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">Services Offered</h3>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {SERVICES.map((s) => (
                   <li key={s.slug}>
                     <Link href={`/services/${s.slug}`} className="flex items-center gap-2 text-gray-600 hover:text-[#d4af37]">
-                      <i className={`${s.icon} w-4 text-[#d4af37]`} />
+                      <Icon icon={s.icon} className="h-4 w-4 shrink-0 text-[#d4af37]" />
                       {s.title}
                     </Link>
                   </li>

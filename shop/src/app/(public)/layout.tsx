@@ -1,27 +1,20 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/public/SiteHeader";
-import { SiteFooter } from "@/components/public/SiteFooter";
+import { PublicChrome } from "@/components/public/PublicChrome";
 import { GoogleAds } from "@/components/public/GoogleAds";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Hard Work Mobile — Mobile Mechanic in Southeast PA",
   description:
     "Mobile auto repair that comes to you across Chester, Delaware & Montgomery Counties, PA. Diagnostics, brakes, engine, suspension, electrical & maintenance at $80/hr.",
-};
+  path: "/",
+});
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-gray-900">
-      {/* Font Awesome for marketing iconography */}
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-      />
       <GoogleAds />
-      <SiteHeader />
-      <main className="flex-1">{children}</main>
-      <SiteFooter />
+      <PublicChrome>{children}</PublicChrome>
     </div>
   );
 }

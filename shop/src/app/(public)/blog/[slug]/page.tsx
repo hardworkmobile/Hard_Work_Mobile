@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { CommentsSection } from "@/components/public/CommentsSection";
+import { buildMetadata } from "@/lib/seo";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -26,7 +28,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPost(slug);
   if (!post) return { title: "Post — Hard Work Mobile" };
-  return { title: `${post.title} — Hard Work Mobile`, description: post.summary ?? undefined };
+  return buildMetadata({
+    title: `${post.title} — Hard Work Mobile`,
+    description: post.summary ?? post.title,
+    path: `/blog/${slug}`,
+    type: "article",
+  });
 }
 
 export default async function PostPage({ params }: Params) {
@@ -45,8 +52,9 @@ export default async function PostPage({ params }: Params) {
       </p>
 
       {post.heroImage && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.heroImage} alt={post.title} className="mt-6 w-full rounded-xl object-cover" />
+        <div className="relative mt-6 aspect-video w-full overflow-hidden rounded-xl">
+          <Image src={post.heroImage} alt={post.title} fill priority sizes="(max-width: 768px) 100vw, 768px" className="object-cover" />
+        </div>
       )}
 
       <div className="mt-8 whitespace-pre-wrap text-lg leading-relaxed text-gray-800">{post.content}</div>

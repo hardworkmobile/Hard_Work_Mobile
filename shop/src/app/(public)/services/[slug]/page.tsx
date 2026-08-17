@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import BookingRequestForm from "@/components/public/BookingRequestForm";
+import { Icon } from "@/components/public/Icon";
+import { TrustSignals } from "@/components/public/TrustSignals";
 import { SERVICE_DATA, SERVICE_LABELS, PHONE, PHONE_HREF } from "@/lib/marketing";
+import { buildMetadata } from "@/lib/seo";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -14,7 +17,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const data = SERVICE_DATA[slug];
   if (!data) return { title: "Service — Hard Work Mobile" };
-  return { title: `${data.eyebrow} — Hard Work Mobile`, description: data.subheadline };
+  return buildMetadata({ title: `${data.eyebrow} — Hard Work Mobile`, description: data.subheadline, path: `/services/${slug}` });
 }
 
 const WHY = [
@@ -34,10 +37,8 @@ export default async function ServiceLandingPage({ params }: Params) {
   return (
     <>
       {/* Hero */}
-      <section
-        className="relative bg-[#1e2833] bg-cover bg-center text-white"
-        style={{ backgroundImage: "url(/images/services-hero.jpg)" }}
-      >
+      <section className="relative overflow-hidden bg-[#1e2833] text-white">
+        <Image src="/images/services-hero.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#12181f]/80" />
         <div className="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 sm:py-24">
           <span className="inline-block rounded-full bg-[#d4af37] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#1e2833]">
@@ -50,7 +51,7 @@ export default async function ServiceLandingPage({ params }: Params) {
           <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-300">{subheadline}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a href={PHONE_HREF} className="rounded-lg bg-[#d4af37] px-6 py-3 font-bold text-[#1e2833] hover:bg-[#c9a42e]">
-              <i className="fa-solid fa-phone mr-2" />{PHONE}
+              <Icon icon="fa-solid fa-phone" className="mr-2 inline h-4 w-4" />{PHONE}
             </a>
             <a href="#request-form" className="rounded-lg border-2 border-white/40 px-6 py-3 font-semibold text-white hover:border-[#d4af37] hover:text-[#d4af37]">
               Request Service
@@ -62,10 +63,10 @@ export default async function ServiceLandingPage({ params }: Params) {
       {/* Trust bar */}
       <div className="bg-[#d4af37]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-2 px-4 py-3.5 text-sm font-bold text-[#1e2833]">
-          <span><i className="fa-solid fa-car mr-2" />We Come to You</span>
-          <span><i className="fa-solid fa-dollar-sign mr-2" />$80/hr Labor</span>
-          <span><i className="fa-solid fa-file-invoice-dollar mr-2" />Upfront Pricing</span>
-          <span><i className="fa-solid fa-map-location-dot mr-2" />Chester, Delaware &amp; Montgomery Co.</span>
+          <span><Icon icon="fa-solid fa-car" className="mr-2 inline h-4 w-4" />We Come to You</span>
+          <span><Icon icon="fa-solid fa-dollar-sign" className="mr-2 inline h-4 w-4" />$80/hr Labor</span>
+          <span><Icon icon="fa-solid fa-file-invoice-dollar" className="mr-2 inline h-4 w-4" />Upfront Pricing</span>
+          <span><Icon icon="fa-solid fa-map-location-dot" className="mr-2 inline h-4 w-4" />Chester, Delaware &amp; Montgomery Co.</span>
         </div>
       </div>
 
@@ -78,7 +79,7 @@ export default async function ServiceLandingPage({ params }: Params) {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
             <div key={s.title} className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-              <i className={`${s.icon} text-2xl text-[#d4af37]`} />
+              <Icon icon={s.icon} className="h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">{s.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{s.desc}</p>
             </div>
@@ -96,7 +97,7 @@ export default async function ServiceLandingPage({ params }: Params) {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {WHY.map((c) => (
               <div key={c.title} className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
-                <i className={`${c.icon} text-2xl text-[#d4af37]`} />
+                <Icon icon={c.icon} className="mx-auto h-6 w-6 text-[#d4af37]" />
                 <h3 className="mt-3 font-bold">{c.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-gray-400">{c.desc}</p>
               </div>
@@ -105,8 +106,13 @@ export default async function ServiceLandingPage({ params }: Params) {
         </div>
       </section>
 
+      {/* Trust signals */}
+      <section className="bg-gray-50 px-4 py-12 sm:px-6">
+        <TrustSignals />
+      </section>
+
       {/* Service area */}
-      <section className="bg-gray-50 py-16">
+      <section className="py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-bold text-[#1e2833]">Service Area</h2>
           <p className="mx-auto mt-3 max-w-2xl text-gray-600">Proudly serving Southeast Pennsylvania.</p>
@@ -134,13 +140,13 @@ export default async function ServiceLandingPage({ params }: Params) {
       <section className="bg-[#1e2833] py-14 text-center text-white">
         <div className="mx-auto max-w-3xl px-4">
           <h2 className="text-2xl font-bold">Ready to Get Started?</h2>
-          <p className="mt-2 text-gray-400">Book online above or give us a call — we&apos;ll get you squared away.</p>
+          <p className="mt-2 text-gray-400">Book above or give us a call — we&apos;ll get you squared away.</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/services" className="rounded-lg border-2 border-white/40 px-6 py-3 font-semibold text-white hover:border-[#d4af37] hover:text-[#d4af37]">
-              Browse All Services
-            </Link>
+            <a href="#request-form" className="rounded-lg border-2 border-white/40 px-6 py-3 font-semibold text-white hover:border-[#d4af37] hover:text-[#d4af37]">
+              Book Above
+            </a>
             <a href={PHONE_HREF} className="rounded-lg bg-[#d4af37] px-6 py-3 font-bold text-[#1e2833] hover:bg-[#c9a42e]">
-              <i className="fa-solid fa-phone mr-2" />{PHONE}
+              <Icon icon="fa-solid fa-phone" className="mr-2 inline h-4 w-4" />{PHONE}
             </a>
           </div>
         </div>

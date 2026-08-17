@@ -4,11 +4,13 @@ import { prisma } from "@/lib/db";
 import { StarRating } from "@/components/public/StarRating";
 import { TestimonialForm } from "@/components/public/TestimonialForm";
 import { GOOGLE_REVIEWS_URL } from "@/lib/marketing";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Reviews — Hard Work Mobile",
   description: "What customers say about Hard Work Mobile, your local mobile mechanic in Southeast PA.",
-};
+  path: "/testimonials",
+});
 
 export const dynamic = "force-dynamic";
 

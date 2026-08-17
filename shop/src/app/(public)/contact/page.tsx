@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import BookingRequestForm from "@/components/public/BookingRequestForm";
+import { Icon } from "@/components/public/Icon";
+import { TrustSignals } from "@/components/public/TrustSignals";
 import { SERVICES, PHONE, PHONE_HREF } from "@/lib/marketing";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Mobile Mechanic — We Come to You | Hard Work Mobile",
   description:
     "Request a mobile mechanic in Chester, Delaware & Montgomery Counties, PA. On-site diagnostics, brakes, engine, suspension, electrical & maintenance at $80/hr. Call (484) 593-3875.",
-};
+  path: "/contact",
+});
 
 const WHY = [
   { icon: "fa-solid fa-car", title: "No Shop Required", desc: "We come to your home, office, or wherever your vehicle is. No tow truck, no waiting room, no inconvenience." },
@@ -20,10 +25,8 @@ export default function ContactPage() {
   return (
     <>
       {/* Hero */}
-      <section
-        className="relative bg-[#1e2833] bg-cover bg-center text-white"
-        style={{ backgroundImage: "url(/images/services-hero.jpg)" }}
-      >
+      <section className="relative overflow-hidden bg-[#1e2833] text-white">
+        <Image src="/images/services-hero.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#12181f]/80" />
         <div className="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 sm:py-24">
           <span className="inline-block rounded-full bg-[#d4af37] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#1e2833]">
@@ -39,7 +42,7 @@ export default function ContactPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a href={PHONE_HREF} className="rounded-lg bg-[#d4af37] px-6 py-3 font-bold text-[#1e2833] transition-colors hover:bg-[#c9a42e]">
-              <i className="fa-solid fa-phone mr-2" />Call {PHONE}
+              <Icon icon="fa-solid fa-phone" className="mr-2 inline h-4 w-4" />Call {PHONE}
             </a>
             <a href="#book" className="rounded-lg border-2 border-white/40 px-6 py-3 font-semibold text-white transition-colors hover:border-[#d4af37] hover:text-[#d4af37]">
               Get a Free Quote
@@ -51,10 +54,10 @@ export default function ContactPage() {
       {/* Trust bar */}
       <div className="bg-[#d4af37]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-2 px-4 py-3.5 text-sm font-bold text-[#1e2833]">
-          <span><i className="fa-solid fa-car mr-2" />We Come to You</span>
-          <span><i className="fa-solid fa-dollar-sign mr-2" />$80/hr Labor</span>
-          <span><i className="fa-solid fa-file-invoice-dollar mr-2" />Upfront Pricing</span>
-          <span><i className="fa-solid fa-map-location-dot mr-2" />Chester, Delaware &amp; Montgomery Co.</span>
+          <span><Icon icon="fa-solid fa-car" className="mr-2 inline h-4 w-4" />We Come to You</span>
+          <span><Icon icon="fa-solid fa-dollar-sign" className="mr-2 inline h-4 w-4" />$80/hr Labor</span>
+          <span><Icon icon="fa-solid fa-file-invoice-dollar" className="mr-2 inline h-4 w-4" />Upfront Pricing</span>
+          <span><Icon icon="fa-solid fa-map-location-dot" className="mr-2 inline h-4 w-4" />Chester, Delaware &amp; Montgomery Co.</span>
         </div>
       </div>
 
@@ -68,7 +71,7 @@ export default function ContactPage() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((s) => (
             <Link key={s.slug} href={`/services/${s.slug}`} className="group rounded-xl border-l-4 border-[#d4af37] bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg">
-              <i className={`${s.icon} text-2xl text-[#d4af37]`} />
+              <Icon icon={s.icon} className="h-6 w-6 text-[#d4af37]" />
               <h3 className="mt-3 font-bold text-[#1e2833]">{s.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{s.desc}</p>
               <span className="mt-3 inline-block text-sm font-bold text-[#d4af37]">Learn More →</span>
@@ -87,7 +90,7 @@ export default function ContactPage() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {WHY.map((c) => (
               <div key={c.title} className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
-                <i className={`${c.icon} text-2xl text-[#d4af37]`} />
+                <Icon icon={c.icon} className="mx-auto h-6 w-6 text-[#d4af37]" />
                 <h3 className="mt-3 font-bold">{c.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-gray-400">{c.desc}</p>
               </div>
@@ -104,19 +107,19 @@ export default function ContactPage() {
         </p>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           <div className="rounded-xl border-l-4 border-[#d4af37] bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-            <i className="fa-solid fa-phone text-2xl text-[#d4af37]" />
+            <Icon icon="fa-solid fa-phone" className="mx-auto h-6 w-6 text-[#d4af37]" />
             <h3 className="mt-3 font-bold text-[#1e2833]">Phone</h3>
             <p className="mt-1 text-sm text-gray-600">{PHONE}</p>
             <a href={PHONE_HREF} className="mt-2 inline-block text-sm font-bold text-[#d4af37] hover:underline">Call Now</a>
           </div>
           <div className="rounded-xl border-l-4 border-[#d4af37] bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-            <i className="fa-solid fa-envelope text-2xl text-[#d4af37]" />
+            <Icon icon="fa-solid fa-envelope" className="mx-auto h-6 w-6 text-[#d4af37]" />
             <h3 className="mt-3 font-bold text-[#1e2833]">Email</h3>
             <p className="mt-1 break-words text-sm text-gray-600">JamesFerzanden@hardworkmobile.com</p>
             <a href="mailto:JamesFerzanden@hardworkmobile.com" className="mt-2 inline-block text-sm font-bold text-[#d4af37] hover:underline">Send Email</a>
           </div>
           <div className="rounded-xl border-l-4 border-[#d4af37] bg-white p-6 text-center shadow-sm ring-1 ring-gray-100">
-            <i className="fa-solid fa-clock text-2xl text-[#d4af37]" />
+            <Icon icon="fa-solid fa-clock" className="mx-auto h-6 w-6 text-[#d4af37]" />
             <h3 className="mt-3 font-bold text-[#1e2833]">Hours</h3>
             <p className="mt-1 text-sm text-gray-600">Monday – Friday</p>
             <p className="text-sm text-gray-600">8:00 AM – 6:00 PM</p>
@@ -124,8 +127,13 @@ export default function ContactPage() {
         </div>
       </section>
 
+      {/* Trust signals */}
+      <section className="bg-gray-50 px-4 py-12 sm:px-6">
+        <TrustSignals />
+      </section>
+
       {/* Service area */}
-      <section className="bg-gray-50 py-16">
+      <section className="py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-bold text-[#1e2833]">Mobile Mechanic Service Area</h2>
           <p className="mx-auto mt-3 max-w-2xl text-gray-600">
@@ -159,11 +167,11 @@ export default function ContactPage() {
             Serving Chester, Delaware &amp; Montgomery Counties — we come to you at $80/hr.
           </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/services" className="rounded-lg bg-[#1e2833] px-6 py-3 font-bold text-white transition-colors hover:bg-[#111b24]">
-              Browse All Services
-            </Link>
+            <a href="#book" className="rounded-lg bg-[#1e2833] px-6 py-3 font-bold text-white transition-colors hover:bg-[#111b24]">
+              Book Above
+            </a>
             <a href={PHONE_HREF} className="rounded-lg border-2 border-[#1e2833] px-6 py-3 font-semibold text-[#1e2833] transition-colors hover:bg-[#1e2833]/10">
-              <i className="fa-solid fa-phone mr-2" />{PHONE}
+              <Icon icon="fa-solid fa-phone" className="mr-2 inline h-4 w-4" />{PHONE}
             </a>
           </div>
         </div>
