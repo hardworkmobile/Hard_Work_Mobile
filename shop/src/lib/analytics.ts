@@ -7,6 +7,10 @@
 
 export const GOOGLE_ADS_ID = "AW-17853782705";
 
+// GA4 property, linked to the same underlying Google tag as GOOGLE_ADS_ID so
+// both share the one gtag.js load on the page.
+export const GA4_MEASUREMENT_ID = "G-WFM3QN1LBP";
+
 // Conversion action labels, in `AW-XXXX/label` form as Google supplies them.
 // Both carried over from the pre-Next.js site so the existing conversion
 // actions keep their history instead of starting over.

@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import Script from "next/script";
-import { GOOGLE_ADS_ID, CONVERSIONS, reportConversion } from "@/lib/analytics";
+import { GOOGLE_ADS_ID, GA4_MEASUREMENT_ID, CONVERSIONS, reportConversion } from "@/lib/analytics";
 
-// Loads the Google Ads global tag on the public marketing site (not the staff
-// admin or customer portal) and reports a conversion whenever a visitor taps a
-// phone number.
+// Loads the shared Google tag (Ads + GA4, same gtag.js) on the public
+// marketing site (not the staff admin or customer portal) and reports a
+// conversion whenever a visitor taps a phone number.
 export function GoogleAds() {
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -34,6 +34,7 @@ export function GoogleAds() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           gtag('config', '${GOOGLE_ADS_ID}');
+          gtag('config', '${GA4_MEASUREMENT_ID}');
         `}
       </Script>
     </>
