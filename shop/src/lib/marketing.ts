@@ -8,6 +8,12 @@ export const AREA = "Chester, Delaware & Montgomery Counties, PA";
 // Google Business Profile listing (CID link — works without the Places API).
 export const GOOGLE_REVIEWS_URL = "https://www.google.com/maps?cid=15453899563222996524";
 
+// Manually updated — the Places API doesn't index this business (confirmed via
+// several independent lookup methods), so this can't be fetched live. Update
+// these whenever the Google Business Profile review count/rating changes.
+export const GOOGLE_REVIEW_COUNT: number = 18;
+export const GOOGLE_REVIEW_RATING: number = 5.0;
+
 export type ServiceOverview = {
   icon: string; // Font Awesome class
   title: string;
